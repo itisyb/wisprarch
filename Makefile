@@ -2,7 +2,7 @@
 
 # Default target
 help:
-	@echo "🦀 ChezWizper Development Commands"
+	@echo "🦀 Audetic Development Commands"
 	@echo ""
 	@echo "  make build     - Build debug binary"
 	@echo "  make release   - Build optimized release binary"
@@ -12,9 +12,9 @@ help:
 	@echo "  make fmt       - Check formatting"
 	@echo "  make fix       - Fix formatting and simple lint issues"
 	@echo ""
-	@echo "  make install   - Install ChezWizper (Arch Linux)"
-	@echo "  make uninstall - Uninstall ChezWizper"
-	@echo "  make run       - Run ChezWizper directly"
+	@echo "  make install   - Install Audetic (Arch Linux)"
+	@echo "  make uninstall - Uninstall Audetic"
+	@echo "  make run       - Run Audetic directly"
 	@echo "  make start     - Enable and start service"
 	@echo "  make logs      - Show service logs"
 	@echo "  make restart   - Restart service"
@@ -58,25 +58,25 @@ run:
 	RUST_LOG=info cargo run --release
 
 logs:
-	journalctl --user -u chezwizper.service -f
+	journalctl --user -u audetic.service -f
 
 start:
-	systemctl --user enable --now chezwizper.service
+	systemctl --user enable --now audetic.service
 	@echo "✓ Service enabled and started"
 
 restart:
-	systemctl --user restart chezwizper.service
+	systemctl --user restart audetic.service
 	@echo "✓ Service restarted"
 
 stop:
-	systemctl --user stop chezwizper.service
+	systemctl --user stop audetic.service
 	@echo "✓ Service stopped"
 
 status:
-	@systemctl --user is-active chezwizper.service >/dev/null 2>&1 && echo "✓ Service is running" || echo "✗ Service is not running"
+	@systemctl --user is-active audetic.service >/dev/null 2>&1 && echo "✓ Service is running" || echo "✗ Service is not running"
 	@curl -s http://127.0.0.1:3737/status 2>/dev/null | python3 -m json.tool || echo "✗ API not responding"
 
 # Cleanup
 clean:
 	cargo clean
-	rm -f /tmp/chezwizper_*.wav
+	rm -f /tmp/audetic_*.wav

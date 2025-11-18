@@ -27,13 +27,13 @@ print_warning() {
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CHEZWIZPER_DIR="$SCRIPT_DIR"
+AUDETIC_DIR="$SCRIPT_DIR"
 
 # Configuration variables
-WHISPER_DIR="$HOME/.local/share/chezwizper/whisper"
-CONFIG_DIR="$HOME/.config/chezwizper"
+WHISPER_DIR="$HOME/.local/share/audetic/whisper"
+CONFIG_DIR="$HOME/.config/audetic"
 INSTALL_DIR="/usr/local/bin"
-BACKUP_DIR="$HOME/.config/chezwizper/backups"
+BACKUP_DIR="$HOME/.config/audetic/backups"
 
 # Parse command line arguments
 UPDATE_WHISPER=false
@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --help)
-            echo "ChezWizper Update Script"
+            echo "Audetic Update Script"
             echo
             echo "Usage: $0 [OPTIONS]"
             echo
@@ -66,8 +66,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --help       Show this help message"
             echo
             echo "Examples:"
-            echo "  $0                  # Update ChezWizper only"
-            echo "  $0 --whisper        # Update both ChezWizper and whisper.cpp"
+            echo "  $0                  # Update Audetic only"
+            echo "  $0 --whisper        # Update both Audetic and whisper.cpp"
             echo "  $0 --check          # Check for available updates"
             exit 0
             ;;
@@ -99,37 +99,37 @@ get_version() {
     git describe --tags --always 2>/dev/null || git rev-parse --short HEAD
 }
 
-print_step "ChezWizper Update Manager"
+print_step "Audetic Update Manager"
 echo
 
-# Check if ChezWizper is installed
-if [ ! -f "$INSTALL_DIR/chezwizper" ]; then
-    print_error "ChezWizper not found in $INSTALL_DIR"
+# Check if Audetic is installed
+if [ ! -f "$INSTALL_DIR/audetic" ]; then
+    print_error "Audetic not found in $INSTALL_DIR"
     print_warning "Please run scripts/install-arch.sh first"
     exit 1
 fi
 
 # Stop the service before updating
-print_step "Checking ChezWizper service status..."
-if systemctl --user is-active --quiet chezwizper.service; then
+print_step "Checking Audetic service status..."
+if systemctl --user is-active --quiet audetic.service; then
     SERVICE_WAS_RUNNING=true
-    print_warning "ChezWizper service is running. It will be restarted after update."
+    print_warning "Audetic service is running. It will be restarted after update."
 else
     SERVICE_WAS_RUNNING=false
 fi
 
 # Check for updates
-cd "$CHEZWIZPER_DIR"
-CURRENT_VERSION=$(get_version "$CHEZWIZPER_DIR")
-print_step "Current ChezWizper version: $CURRENT_VERSION"
+cd "$AUDETIC_DIR"
+CURRENT_VERSION=$(get_version "$AUDETIC_DIR")
+print_step "Current Audetic version: $CURRENT_VERSION"
 
-if check_for_updates "$CHEZWIZPER_DIR" || [ "$FORCE_UPDATE" = true ]; then
-    CHEZWIZPER_UPDATE_AVAILABLE=true
-    NEW_VERSION=$(cd "$CHEZWIZPER_DIR" && git rev-parse --short origin/HEAD 2>/dev/null || echo "latest")
-    print_warning "ChezWizper update available: $CURRENT_VERSION → $NEW_VERSION"
+if check_for_updates "$AUDETIC_DIR" || [ "$FORCE_UPDATE" = true ]; then
+    AUDETIC_UPDATE_AVAILABLE=true
+    NEW_VERSION=$(cd "$AUDETIC_DIR" && git rev-parse --short origin/HEAD 2>/dev/null || echo "latest")
+    print_warning "Audetic update available: $CURRENT_VERSION → $NEW_VERSION"
 else
-    CHEZWIZPER_UPDATE_AVAILABLE=false
-    print_success "ChezWizper is up to date"
+    AUDETIC_UPDATE_AVAILABLE=false
+    print_success "Audetic is up to date"
 fi
 
 # Check whisper updates if requested
@@ -149,7 +149,7 @@ fi
 
 # If only checking, exit here
 if [ "$CHECK_ONLY" = true ]; then
-    if [ "$CHEZWIZPER_UPDATE_AVAILABLE" = true ] || [ "${WHISPER_UPDATE_AVAILABLE:-false}" = true ]; then
+    if [ "$AUDETIC_UPDATE_AVAILABLE" = true ] || [ "${WHISPER_UPDATE_AVAILABLE:-false}" = true ]; then
         print_warning "Updates are available. Run without --check to install."
         exit 0
     else
@@ -159,7 +159,7 @@ if [ "$CHECK_ONLY" = true ]; then
 fi
 
 # Exit if no updates available (unless forced)
-if [ "$CHEZWIZPER_UPDATE_AVAILABLE" = false ] && [ "${WHISPER_UPDATE_AVAILABLE:-false}" = false ] && [ "$FORCE_UPDATE" = false ]; then
+if [ "$AUDETIC_UPDATE_AVAILABLE" = false ] && [ "${WHISPER_UPDATE_AVAILABLE:-false}" = false ] && [ "$FORCE_UPDATE" = false ]; then
     print_success "Nothing to update!"
     exit 0
 fi
@@ -177,14 +177,14 @@ fi
 
 # Stop service if running
 if [ "$SERVICE_WAS_RUNNING" = true ]; then
-    print_step "Stopping ChezWizper service..."
-    systemctl --user stop chezwizper.service
+    print_step "Stopping Audetic service..."
+    systemctl --user stop audetic.service
 fi
 
-# Update ChezWizper
-if [ "$CHEZWIZPER_UPDATE_AVAILABLE" = true ] || [ "$FORCE_UPDATE" = true ]; then
-    print_step "Updating ChezWizper..."
-    cd "$CHEZWIZPER_DIR"
+# Update Audetic
+if [ "$AUDETIC_UPDATE_AVAILABLE" = true ] || [ "$FORCE_UPDATE" = true ]; then
+    print_step "Updating Audetic..."
+    cd "$AUDETIC_DIR"
     
     # Pull latest changes
     DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
@@ -194,21 +194,21 @@ if [ "$CHEZWIZPER_UPDATE_AVAILABLE" = true ] || [ "$FORCE_UPDATE" = true ]; then
     fi
     
     # Clean and rebuild
-    print_step "Building ChezWizper..."
+    print_step "Building Audetic..."
     cargo clean
     if ! cargo build --release; then
-        print_error "Failed to build ChezWizper"
+        print_error "Failed to build Audetic"
         exit 1
     fi
     
     # Install new binary
     print_step "Installing updated binary..."
-    if ! sudo cp target/release/chezwizper "$INSTALL_DIR/"; then
-        print_error "Failed to install ChezWizper binary"
+    if ! sudo cp target/release/audetic "$INSTALL_DIR/"; then
+        print_error "Failed to install Audetic binary"
         exit 1
     fi
-    sudo chmod +x "$INSTALL_DIR/chezwizper"
-    print_success "ChezWizper updated successfully"
+    sudo chmod +x "$INSTALL_DIR/audetic"
+    print_success "Audetic updated successfully"
 fi
 
 # Update whisper if requested
@@ -243,7 +243,7 @@ if [ -f "$CONFIG_DIR/config.toml" ]; then
     print_warning "Please check if new configuration options are available:"
     echo "  Current config: $CONFIG_DIR/config.toml"
     echo "  Backup saved to: $BACKUP_DIR/config_${BACKUP_DATE}.toml"
-    echo "  Check documentation at: https://github.com/silvabyte/ChezWizper/blob/main/docs/"
+    echo "  Check documentation at: https://github.com/silvabyte/Audetic/blob/main/docs/"
 fi
 
 # Update systemd service if needed
@@ -252,12 +252,12 @@ systemctl --user daemon-reload
 
 # Restart service if it was running
 if [ "$SERVICE_WAS_RUNNING" = true ]; then
-    print_step "Starting ChezWizper service..."
-    if systemctl --user start chezwizper.service; then
-        print_success "ChezWizper service restarted"
+    print_step "Starting Audetic service..."
+    if systemctl --user start audetic.service; then
+        print_success "Audetic service restarted"
     else
-        print_error "Failed to start ChezWizper service"
-        print_warning "Check logs with: journalctl --user -u chezwizper.service -e"
+        print_error "Failed to start Audetic service"
+        print_warning "Check logs with: journalctl --user -u audetic.service -e"
     fi
 fi
 
@@ -265,8 +265,8 @@ fi
 echo
 print_success "Update completed!"
 echo
-NEW_VERSION=$(get_version "$CHEZWIZPER_DIR")
-echo "ChezWizper version: $NEW_VERSION"
+NEW_VERSION=$(get_version "$AUDETIC_DIR")
+echo "Audetic version: $NEW_VERSION"
 if [ "$UPDATE_WHISPER" = true ]; then
     WHISPER_VERSION=$(get_version "$WHISPER_DIR" 2>/dev/null || echo "unknown")
     echo "whisper.cpp version: $WHISPER_VERSION"
@@ -275,12 +275,12 @@ fi
 # Show post-update instructions
 echo
 print_step "Post-update steps:"
-echo "1. Check service status: ${GREEN}systemctl --user status chezwizper.service${NC}"
-echo "2. View logs if needed: ${GREEN}journalctl --user -u chezwizper.service -f${NC}"
+echo "1. Check service status: ${GREEN}systemctl --user status audetic.service${NC}"
+echo "2. View logs if needed: ${GREEN}journalctl --user -u audetic.service -f${NC}"
 echo "3. Test recording with your keybind (e.g., Super+R)"
 
 # Check for release notes
-if [ -f "$CHEZWIZPER_DIR/CHANGELOG.md" ] || [ -f "$CHEZWIZPER_DIR/RELEASES.md" ]; then
+if [ -f "$AUDETIC_DIR/CHANGELOG.md" ] || [ -f "$AUDETIC_DIR/RELEASES.md" ]; then
     echo
     print_warning "Check release notes for important changes"
 fi

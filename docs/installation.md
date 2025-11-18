@@ -1,4 +1,4 @@
-# ChezWizper Installation Guide
+# Audetic Installation Guide
 
 Complete installation instructions for different operating systems and environments.
 
@@ -9,15 +9,15 @@ Complete installation instructions for different operating systems and environme
 For users running Omarchy on Arch Linux, use the automated installer:
 
 ```bash
-git clone https://github.com/silvabyte/ChezWizper.git
-cd ChezWizper
+git clone https://github.com/silvabyte/Audetic.git
+cd Audetic
 make install
 ```
 
 This installer:
 - Installs all system dependencies (Rust, ydotool, wtype, wl-clipboard, etc.)
 - Builds optimized Whisper.cpp with large-v3-turbo model
-- Compiles and installs ChezWizper
+- Compiles and installs Audetic
 - Creates systemd user service
 - Sets up update mechanism
 - Creates proper configuration
@@ -26,13 +26,13 @@ This installer:
 ```bash
 make install              # Normal install with smart detection
 make install -- --clean   # Fresh install from scratch
-make install -- --skip-whisper  # Update only ChezWizper
-make install -- --rebuild       # Force rebuild ChezWizper
+make install -- --skip-whisper  # Update only Audetic
+make install -- --rebuild       # Force rebuild Audetic
 ```
 
 **Post-installation steps:**
 1. `make start` - Enable and start the service
-2. Add to Hyprland config: `bindd = SUPER, R, ChezWizper, exec, curl -X POST http://127.0.0.1:3737/toggle`
+2. Add to Hyprland config: `bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle`
 
 ## Manual Installation
 
@@ -77,7 +77,7 @@ sudo dnf install rust cargo ydotool cmake gcc-c++ alsa-lib-devel curl openssl-de
 
 ### Text Injection Setup
 
-ChezWizper requires a text injection method. See the [Text Injection Setup Guide](./text-injection-setup.md) for detailed configuration.
+Audetic requires a text injection method. See the [Text Injection Setup Guide](./text-injection-setup.md) for detailed configuration.
 
 **Quick setup for ydotool (recommended):**
 
@@ -92,15 +92,15 @@ source ~/.bashrc
 
 ## Whisper Installation Options
 
-ChezWizper supports multiple Whisper implementations:
+Audetic supports multiple Whisper implementations:
 
 ### Option 1: Optimized whisper.cpp (Recommended)
 
 Use the optimized fork with automatic build:
 
 ```bash
-git clone https://github.com/matsilva/whisper.git ~/.local/share/chezwizper/whisper
-cd ~/.local/share/chezwizper/whisper
+git clone https://github.com/matsilva/whisper.git ~/.local/share/audetic/whisper
+cd ~/.local/share/audetic/whisper
 ./build.sh
 ```
 
@@ -121,19 +121,19 @@ make
 ./models/download-ggml-model.sh base
 ```
 
-## Building ChezWizper
+## Building Audetic
 
 ```bash
 # Clone the repository
-git clone https://github.com/silvabyte/ChezWizper.git
-cd ChezWizper
+git clone https://github.com/silvabyte/Audetic.git
+cd Audetic
 
 # Build release version
 cargo build --release
 
 # Install binary
-sudo cp target/release/chezwizper /usr/local/bin/
-sudo chmod +x /usr/local/bin/chezwizper
+sudo cp target/release/audetic /usr/local/bin/
+sudo chmod +x /usr/local/bin/audetic
 ```
 
 ## Configuration
@@ -141,10 +141,10 @@ sudo chmod +x /usr/local/bin/chezwizper
 Create the configuration directory and file:
 
 ```bash
-mkdir -p ~/.config/chezwizper
+mkdir -p ~/.config/audetic
 ```
 
-ChezWizper will create a default config on first run, or you can create one manually:
+Audetic will create a default config on first run, or you can create one manually:
 
 ### For Optimized Whisper.cpp
 
@@ -157,8 +157,8 @@ channels = 1
 [whisper]
 model = "large-v3-turbo"
 language = "en"
-command_path = "/home/user/.local/share/chezwizper/whisper/build/bin/whisper-cli"
-model_path = "/home/user/.local/share/chezwizper/whisper/models/ggml-large-v3-turbo-q5_1.bin"
+command_path = "/home/user/.local/share/audetic/whisper/build/bin/whisper-cli"
+model_path = "/home/user/.local/share/audetic/whisper/models/ggml-large-v3-turbo-q5_1.bin"
 
 [ui]
 indicator_position = "top-right"
@@ -215,16 +215,16 @@ Create a user service for automatic startup:
 mkdir -p ~/.config/systemd/user
 ```
 
-Create `~/.config/systemd/user/chezwizper.service`:
+Create `~/.config/systemd/user/audetic.service`:
 
 ```ini
 [Unit]
-Description=ChezWizper Voice Transcription Service
+Description=Audetic Voice Transcription Service
 After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/chezwizper
+ExecStart=/usr/local/bin/audetic
 Restart=always
 RestartSec=5
 Environment="RUST_LOG=info"
@@ -239,7 +239,7 @@ Enable and start the service:
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now chezwizper.service
+systemctl --user enable --now audetic.service
 ```
 
 ## Hyprland Integration
@@ -247,12 +247,12 @@ systemctl --user enable --now chezwizper.service
 Add to your Hyprland config (`~/.config/hypr/hyprland.conf`):
 
 ```
-bindd = SUPER, R, ChezWizper, exec, curl -X POST http://127.0.0.1:3737/toggle
+bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle
 ```
 
 For Omarchy users:
 ```
-bindd = SUPER, R, ChezWizper, exec, $terminal -e curl -X POST http://127.0.0.1:3737/toggle
+bindd = SUPER, R, Audetic, exec, $terminal -e curl -X POST http://127.0.0.1:3737/toggle
 ```
 
 ## GNOME + Wayland Setup
@@ -291,10 +291,10 @@ source ~/.bashrc
 # Enable services
 systemctl --user daemon-reload
 systemctl --user enable --now ydotoold.service
-systemctl --user enable --now chezwizper.service
+systemctl --user enable --now audetic.service
 ```
 
-### 2. Configure ChezWizper for GNOME
+### 2. Configure Audetic for GNOME
 
 ```toml
 [wayland]
@@ -312,7 +312,7 @@ use_hyprland_ipc = false
 
 ## Testing Installation
 
-1. **Test service**: `systemctl --user status chezwizper.service`
+1. **Test service**: `systemctl --user status audetic.service`
 2. **Test API**: `curl -X POST http://127.0.0.1:3737/toggle`
 3. **Test recording**: Press your configured keybind
 4. **Check logs**: `make logs`
@@ -320,10 +320,10 @@ use_hyprland_ipc = false
 ## Troubleshooting
 
 ### Service fails to start
-- Check logs: `make logs` or `journalctl --user -u chezwizper.service -e`
+- Check logs: `make logs` or `journalctl --user -u audetic.service -e`
 - Check status: `make status`
-- Verify binary path: `which chezwizper`
-- Test config: `chezwizper --verbose`
+- Verify binary path: `which audetic`
+- Test config: `audetic --verbose`
 
 ### Recording doesn't work
 - Check microphone permissions
@@ -350,25 +350,25 @@ use_hyprland_ipc = false
 The automated installer sets up an update mechanism:
 
 ```bash
-chezwizper-update                    # Update ChezWizper only
-chezwizper-update --whisper          # Update both ChezWizper and Whisper
-chezwizper-update --check            # Check for available updates
-chezwizper-update --force            # Force update even if up-to-date
+audetic-update                    # Update Audetic only
+audetic-update --whisper          # Update both Audetic and Whisper
+audetic-update --check            # Check for available updates
+audetic-update --force            # Force update even if up-to-date
 ```
 
 ## Uninstalling
 
 ```bash
 # Stop and disable service
-systemctl --user stop chezwizper.service
-systemctl --user disable chezwizper.service
+systemctl --user stop audetic.service
+systemctl --user disable audetic.service
 
 # Remove files
-sudo rm /usr/local/bin/chezwizper
-sudo rm /usr/local/bin/chezwizper-update
-rm -rf ~/.config/chezwizper
-rm -rf ~/.local/share/chezwizper
-rm ~/.config/systemd/user/chezwizper.service
+sudo rm /usr/local/bin/audetic
+sudo rm /usr/local/bin/audetic-update
+rm -rf ~/.config/audetic
+rm -rf ~/.local/share/audetic
+rm ~/.config/systemd/user/audetic.service
 
 # Reload systemd
 systemctl --user daemon-reload

@@ -66,7 +66,7 @@ impl ApiServer {
 
 async fn status() -> Json<Value> {
     Json(json!({
-        "service": "chezwizper",
+        "service": "audetic",
         "version": "0.1.0",
         "status": "running"
     }))
@@ -109,7 +109,7 @@ async fn recording_status(
 fn generate_waybar_response(recording: bool, config: &WaybarConfig) -> Value {
     json!({
         "text": if recording { &config.recording_text } else { &config.idle_text },
-        "class": if recording { "chezwizper-recording" } else { "chezwizper-idle" },
+        "class": if recording { "audetic-recording" } else { "audetic-idle" },
         "tooltip": if recording {
             &config.recording_tooltip
         } else {

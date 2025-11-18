@@ -1,4 +1,4 @@
-# ChezWizper
+# Audetic
 
 Voice transcription tool for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application.
 
@@ -7,16 +7,16 @@ Voice transcription tool for Wayland/Hyprland. Press a keybind to toggle recordi
 ## Quick Install (Omarchy + Arch Linux)
 
 ```bash
-git clone https://github.com/silvabyte/ChezWizper.git
-cd ChezWizper
+git clone https://github.com/silvabyte/Audetic.git
+cd Audetic
 make install
 ```
 
-This automatically installs dependencies, builds ChezWizper with optimized Whisper, sets up services, and configures keybinds.
+This automatically installs dependencies, builds Audetic with optimized Whisper, sets up services, and configures keybinds.
 
 **After installation:**
 1. Start the service: `make start`
-2. Add to Hyprland config: `bindd = SUPER, R, ChezWizper, exec, curl -X POST http://127.0.0.1:3737/toggle`
+2. Add to Hyprland config: `bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle`
 3. Press Super+R to start recording!
 
 ## Features
@@ -34,11 +34,11 @@ For other distributions or custom setups, see the [Installation Guide](./docs/in
 
 ## Configuration
 
-Default config at `~/.config/chezwizper/config.toml`. See [Configuration Guide](./docs/configuration.md) for details.
+Default config at `~/.config/audetic/config.toml`. See [Configuration Guide](./docs/configuration.md) for details.
 
 ## Development
 
-ChezWizper uses a Makefile for common tasks:
+Audetic uses a Makefile for common tasks:
 
 ```bash
 make build      # Build debug binary
@@ -64,9 +64,9 @@ make clean      # Clean build artifacts
 ## Updates
 
 ```bash
-chezwizper-update                    # Update ChezWizper
-chezwizper-update --whisper          # Update both ChezWizper and Whisper
-chezwizper-update --check            # Check for updates
+audetic-update                    # Update Audetic
+audetic-update --whisper          # Update both Audetic and Whisper
+audetic-update --check            # Check for updates
 ```
 
 ## License

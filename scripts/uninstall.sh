@@ -21,12 +21,12 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --help)
-            echo "ChezWizper Uninstallation Script"
+            echo "Audetic Uninstallation Script"
             echo ""
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  --keep-config   Keep configuration files in ~/.config/chezwizper"
+            echo "  --keep-config   Keep configuration files in ~/.config/audetic"
             echo "  --keep-whisper  Keep whisper.cpp installation"
             echo "  --force         Skip confirmation prompts"
             echo "  --help          Show this help message"
@@ -79,15 +79,15 @@ print_warning() {
 }
 
 # Configuration variables
-WHISPER_DIR="$HOME/.local/share/chezwizper/whisper"
-CONFIG_DIR="$HOME/.config/chezwizper"
+WHISPER_DIR="$HOME/.local/share/audetic/whisper"
+CONFIG_DIR="$HOME/.config/audetic"
 INSTALL_DIR="/usr/local/bin"
-SOURCE_BACKUP_DIR="$HOME/.local/share/chezwizper/source"
-DATA_DIR="$HOME/.local/share/chezwizper"
-SERVICE_FILE="$HOME/.config/systemd/user/chezwizper.service"
+SOURCE_BACKUP_DIR="$HOME/.local/share/audetic/source"
+DATA_DIR="$HOME/.local/share/audetic"
+SERVICE_FILE="$HOME/.config/systemd/user/audetic.service"
 
 # Show what will be removed
-print_warning "ChezWizper Uninstallation"
+print_warning "Audetic Uninstallation"
 echo ""
 echo "The following will be removed:"
 echo ""
@@ -95,13 +95,13 @@ echo ""
 # Check what exists and will be removed
 ITEMS_TO_REMOVE=()
 
-if [ -f "$INSTALL_DIR/chezwizper" ]; then
-    echo "  • ChezWizper binary: $INSTALL_DIR/chezwizper"
+if [ -f "$INSTALL_DIR/audetic" ]; then
+    echo "  • Audetic binary: $INSTALL_DIR/audetic"
     ITEMS_TO_REMOVE+=("binary")
 fi
 
-if [ -f "$INSTALL_DIR/chezwizper-update" ]; then
-    echo "  • Update script: $INSTALL_DIR/chezwizper-update"
+if [ -f "$INSTALL_DIR/audetic-update" ]; then
+    echo "  • Update script: $INSTALL_DIR/audetic-update"
     ITEMS_TO_REMOVE+=("update")
 fi
 
@@ -130,7 +130,7 @@ if [ -d "$SOURCE_BACKUP_DIR" ]; then
 fi
 
 # Check for temp files
-TEMP_FILES=$(find /tmp -maxdepth 1 -name "chezwizper_*.wav" 2>/dev/null || true)
+TEMP_FILES=$(find /tmp -maxdepth 1 -name "audetic_*.wav" 2>/dev/null || true)
 if [ -n "$TEMP_FILES" ]; then
     echo "  • Temporary audio files in /tmp"
     ITEMS_TO_REMOVE+=("temp")
@@ -140,7 +140,7 @@ echo ""
 
 # Check if anything needs to be removed
 if [ ${#ITEMS_TO_REMOVE[@]} -eq 0 ]; then
-    print_warning "ChezWizper does not appear to be installed"
+    print_warning "Audetic does not appear to be installed"
     exit 0
 fi
 
@@ -158,18 +158,18 @@ echo ""
 print_step "Starting uninstallation..."
 
 # Step 1: Stop and disable service
-if systemctl --user is-active --quiet chezwizper.service 2>/dev/null; then
-    print_step "Stopping ChezWizper service..."
-    if systemctl --user stop chezwizper.service; then
+if systemctl --user is-active --quiet audetic.service 2>/dev/null; then
+    print_step "Stopping Audetic service..."
+    if systemctl --user stop audetic.service; then
         print_success "Service stopped"
     else
         print_warning "Failed to stop service (continuing anyway)"
     fi
 fi
 
-if systemctl --user is-enabled --quiet chezwizper.service 2>/dev/null; then
-    print_step "Disabling ChezWizper service..."
-    if systemctl --user disable chezwizper.service; then
+if systemctl --user is-enabled --quiet audetic.service 2>/dev/null; then
+    print_step "Disabling Audetic service..."
+    if systemctl --user disable audetic.service; then
         print_success "Service disabled"
     else
         print_warning "Failed to disable service (continuing anyway)"
@@ -188,18 +188,18 @@ if [ -f "$SERVICE_FILE" ]; then
 fi
 
 # Step 3: Remove binaries
-if [ -f "$INSTALL_DIR/chezwizper" ]; then
-    print_step "Removing ChezWizper binary..."
-    if sudo rm -f "$INSTALL_DIR/chezwizper"; then
+if [ -f "$INSTALL_DIR/audetic" ]; then
+    print_step "Removing Audetic binary..."
+    if sudo rm -f "$INSTALL_DIR/audetic"; then
         print_success "Binary removed"
     else
         print_error "Failed to remove binary (you may need to run with sudo)"
     fi
 fi
 
-if [ -f "$INSTALL_DIR/chezwizper-update" ]; then
+if [ -f "$INSTALL_DIR/audetic-update" ]; then
     print_step "Removing update script..."
-    if sudo rm -f "$INSTALL_DIR/chezwizper-update"; then
+    if sudo rm -f "$INSTALL_DIR/audetic-update"; then
         print_success "Update script removed"
     else
         print_warning "Failed to remove update script"
@@ -247,7 +247,7 @@ fi
 # Step 8: Remove temporary files
 if [ -n "$TEMP_FILES" ]; then
     print_step "Removing temporary audio files..."
-    if rm -f /tmp/chezwizper_*.wav 2>/dev/null; then
+    if rm -f /tmp/audetic_*.wav 2>/dev/null; then
         print_success "Temporary files removed"
     else
         print_warning "Some temporary files may remain in /tmp"
@@ -256,7 +256,7 @@ fi
 
 # Final message
 echo ""
-print_success "ChezWizper has been uninstalled!"
+print_success "Audetic has been uninstalled!"
 
 if [ "$KEEP_CONFIG" = true ] && [ -d "$CONFIG_DIR" ]; then
     echo ""
@@ -271,13 +271,13 @@ fi
 echo ""
 print_step "Optional cleanup steps:"
 echo ""
-echo "1. If you installed system dependencies specifically for ChezWizper,"
+echo "1. If you installed system dependencies specifically for Audetic,"
 echo "   you may want to remove them:"
 echo "   sudo pacman -Rs rust ydotool wtype wl-clipboard alsa-lib"
 echo ""
 echo "2. Remove Hyprland keybind from ~/.config/hypr/hyprland.conf:"
-echo "   bindd = SUPER, R, ChezWizper, ..."
+echo "   bindd = SUPER, R, Audetic, ..."
 echo ""
-echo "3. If you enabled ydotool service only for ChezWizper:"
+echo "3. If you enabled ydotool service only for Audetic:"
 echo "   systemctl --user disable --now ydotool.service"
 echo ""

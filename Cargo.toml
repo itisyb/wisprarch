@@ -1,5 +1,5 @@
 [package]
-name = "chezwizper"
+name = "audetic"
 version = "0.1.0"
 edition = "2021"
 authors = ["Mat Silva"]
@@ -7,7 +7,7 @@ description = "Voice transcription tool for Wayland/Hyprland"
 license = "MIT"
 
 [[bin]]
-name = "chezwizper"
+name = "audetic"
 path = "src/main.rs"
 
 [[bin]]

@@ -1,0 +1,21 @@
+#!/bin/bash
+# System-wide update wrapper for Audetic
+# This script is installed to /usr/local/bin for easy access
+
+AUDETIC_SOURCE_DIR="${AUDETIC_SOURCE_DIR:-/home/matsilva/.local/share/audetic/source}"
+
+if [ ! -d "$AUDETIC_SOURCE_DIR" ]; then
+  echo "Error: Audetic source directory not found at $AUDETIC_SOURCE_DIR"
+  echo "Please set AUDETIC_SOURCE_DIR environment variable or reinstall Audetic"
+  exit 1
+fi
+
+if [ ! -f "$AUDETIC_SOURCE_DIR/update-audetic.sh" ]; then
+  echo "Error: Update script not found in source directory"
+  echo "Please reinstall Audetic"
+  exit 1
+fi
+
+# Pass all arguments to the actual update script
+exec "$AUDETIC_SOURCE_DIR/update-audetic.sh" "$@"
+

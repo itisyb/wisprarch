@@ -1,10 +1,10 @@
 # Text Injection Setup Guide
 
-ChezWizper supports multiple methods for automatically injecting transcribed text into your applications. This guide explains the available methods and how to set them up on different Linux distributions and desktop environments.
+Audetic supports multiple methods for automatically injecting transcribed text into your applications. This guide explains the available methods and how to set them up on different Linux distributions and desktop environments.
 
 ## Automatic Method Selection
 
-ChezWizper automatically detects the best available text injection method based on:
+Audetic automatically detects the best available text injection method based on:
 
 1. **User preference** (if specified in config)
 2. **Available tools** on your system  
@@ -54,7 +54,7 @@ input_method = "ydotool"
 
 **Best for**: Sway and some other Wayland compositors
 
-**Note**: Does NOT work reliably with KDE Plasma or GNOME due to security restrictions. ChezWizper will automatically fall back to clipboard paste if wtype fails.
+**Note**: Does NOT work reliably with KDE Plasma or GNOME due to security restrictions. Audetic will automatically fall back to clipboard paste if wtype fails.
 
 **Installation**:
 ```bash
@@ -100,7 +100,7 @@ sudo apt install xclip xsel     # Ubuntu/Debian
 3. Simulates Ctrl+V keypress to paste using available tools (ydotool, wtype, or xdotool)
 4. If paste simulation fails, text remains in clipboard for manual paste
 
-**Note**: ChezWizper automatically falls back to this method if direct text injection (ydotool/wtype) fails.
+**Note**: Audetic automatically falls back to this method if direct text injection (ydotool/wtype) fails.
 
 ## Distribution-Specific Notes
 
@@ -227,9 +227,9 @@ echo "Hello World" | wl-copy && wtype -M ctrl -P v -m ctrl -p v
 echo "Hello World" | wl-copy && wl-paste
 ```
 
-Run ChezWizper with verbose logging:
+Run Audetic with verbose logging:
 ```bash
-./chezwizper --verbose
+./audetic --verbose
 ```
 
 This will show which text injection method was selected and any errors encountered.

@@ -1,6 +1,6 @@
-# ChezWizper Configuration Guide
+# Audetic Configuration Guide
 
-ChezWizper is configured via a single TOML file located at `~/.config/chezwizper/config.toml`. This guide covers everything you need to know about configuring ChezWizper for your needs.
+Audetic is configured via a single TOML file located at `~/.config/audetic/config.toml`. This guide covers everything you need to know about configuring Audetic for your needs.
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ The minimal configuration to get started:
 
 ```toml
 [whisper]
-# Auto-detection (recommended) - ChezWizper will automatically choose the best provider
+# Auto-detection (recommended) - Audetic will automatically choose the best provider
 language = "en"
 
 # For OpenAI API access, add your key to config:
@@ -16,7 +16,7 @@ language = "en"
 # api_key = "sk-your-api-key-here"
 ```
 
-ChezWizper will create a default configuration file on first run if none exists.
+Audetic will create a default configuration file on first run if none exists.
 
 ## Complete Configuration Example
 
@@ -67,7 +67,7 @@ audio_feedback = true           # Play audio feedback sounds
 
 ### [audio] - Audio Input Settings
 
-Controls how ChezWizper captures audio from your microphone.
+Controls how Audetic captures audio from your microphone.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -96,7 +96,7 @@ Configures speech-to-text transcription providers and models.
 
 #### Providers
 
-ChezWizper supports multiple transcription providers:
+Audetic supports multiple transcription providers:
 
 **OpenAI API** (`provider = "openai-api"`)
 - **Best for:** High accuracy, no local setup
@@ -118,7 +118,7 @@ ChezWizper supports multiple transcription providers:
 - **Cost:** Free (local processing)
 
 **Auto-Detection** (omit `provider`)
-- ChezWizper automatically selects the best available provider:
+- Audetic automatically selects the best available provider:
   1. OpenAI Whisper CLI (if installed)
   2. whisper.cpp (fallback)
 - Note: API providers require explicit configuration with api_key
@@ -184,7 +184,7 @@ Configures integration with Wayland desktop environments.
 
 ### [behavior] - Application Behavior
 
-Controls how ChezWizper handles transcribed text and temporary files.
+Controls how Audetic handles transcribed text and temporary files.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -195,15 +195,15 @@ Controls how ChezWizper handles transcribed text and temporary files.
 
 ## Configuration File Location
 
-ChezWizper looks for its configuration file at:
+Audetic looks for its configuration file at:
 
-- **Linux:** `~/.config/chezwizper/config.toml`
-- **macOS:** `~/Library/Application Support/chezwizper/config.toml`
-- **Windows:** `%APPDATA%\chezwizper\config.toml`
+- **Linux:** `~/.config/audetic/config.toml`
+- **macOS:** `~/Library/Application Support/audetic/config.toml`
+- **Windows:** `%APPDATA%\audetic\config.toml`
 
 ## Environment Variables
 
-ChezWizper respects these environment variables:
+Audetic respects these environment variables:
 
 | Variable | Description |
 |----------|-------------|
@@ -302,8 +302,8 @@ model = "whisper-1"
 - Verify boolean values: `true`/`false` not `"true"`/`"false"`
 
 **"Config file not found"**
-- ChezWizper will create a default config on first run
-- Manually create the config directory: `mkdir -p ~/.config/chezwizper`
+- Audetic will create a default config on first run
+- Manually create the config directory: `mkdir -p ~/.config/audetic`
 
 ### Provider Issues
 
@@ -327,8 +327,8 @@ model = "whisper-1"
 
 Test your configuration:
 ```bash
-# Start ChezWizper with verbose logging
-RUST_LOG=debug chezwizper
+# Start Audetic with verbose logging
+RUST_LOG=debug audetic
 
 # Look for these log messages:
 # "Loaded config from ..."

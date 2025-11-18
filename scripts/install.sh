@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Check for help flag first
 if [[ "$*" == *"--help"* ]]; then
-    echo "ChezWizper Universal Installation Script"
+    echo "Audetic Universal Installation Script"
     echo ""
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -14,13 +14,13 @@ if [[ "$*" == *"--help"* ]]; then
     echo "  --clean         Clean install (remove existing installations)"
     echo "  --skip-deps     Skip system dependency installation"
     echo "  --skip-whisper  Skip whisper.cpp build"
-    echo "  --rebuild       Force rebuild ChezWizper even if binary exists"
+    echo "  --rebuild       Force rebuild Audetic even if binary exists"
     echo "  --help          Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                    # Normal install with smart detection"
     echo "  $0 --clean            # Fresh install from scratch"
-    echo "  $0 --skip-whisper     # Update only ChezWizper"
+    echo "  $0 --skip-whisper     # Update only Audetic"
     echo ""
     echo "Supported Systems:"
     echo "  - Arch Linux (including Omarchy)"
@@ -75,13 +75,13 @@ detect_os() {
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CHEZWIZPER_DIR="$SCRIPT_DIR"
+AUDETIC_DIR="$SCRIPT_DIR"
 
 # Configuration variables
-WHISPER_DIR="$HOME/.local/share/chezwizper/whisper"
-CONFIG_DIR="$HOME/.config/chezwizper"
+WHISPER_DIR="$HOME/.local/share/audetic/whisper"
+CONFIG_DIR="$HOME/.config/audetic"
 INSTALL_DIR="/usr/local/bin"
-SOURCE_BACKUP_DIR="$HOME/.local/share/chezwizper/source"
+SOURCE_BACKUP_DIR="$HOME/.local/share/audetic/source"
 
 # Detect OS
 OS=$(detect_os)
@@ -89,7 +89,7 @@ print_step "Detected OS: $OS"
 
 case $OS in
     "arch")
-        print_step "Starting ChezWizper installation for Arch Linux"
+        print_step "Starting Audetic installation for Arch Linux"
         DISTRO_INSTALL_SCRIPT="$SCRIPT_DIR/install-arch.sh"
         ;;
     "debian"|"ubuntu")

@@ -1,6 +1,6 @@
-# ChezWizper Documentation
+# Audetic Documentation
 
-Welcome to the ChezWizper documentation. This directory contains detailed guides for configuring and using ChezWizper.
+Welcome to the Audetic documentation. This directory contains detailed guides for configuring and using Audetic.
 
 ## Available Documentation
 
@@ -8,14 +8,14 @@ Welcome to the ChezWizper documentation. This directory contains detailed guides
 
 - [Installation Guide](./installation.md) - Complete installation instructions for all platforms
 - [Text Injection Setup](./text-injection-setup.md) - Set up automatic text injection methods for different environments
-- [**Configuration Guide**](./configuration.md) - Complete configuration reference covering all ChezWizper settings including providers, audio, UI, and behavior
-- [Waybar Integration](./waybar-integration.md) - Add ChezWizper status indicators to your Waybar
+- [**Configuration Guide**](./configuration.md) - Complete configuration reference covering all Audetic settings including providers, audio, UI, and behavior
+- [Waybar Integration](./waybar-integration.md) - Add Audetic status indicators to your Waybar
 
 ### Development
 
 - [**Adding Providers**](./adding-providers.md) - Complete guide for developers to add new transcription providers
 
-ChezWizper includes a Makefile for common development tasks:
+Audetic includes a Makefile for common development tasks:
 
 ```bash
 make help       # Show all available commands
@@ -38,4 +38,4 @@ make status     # Check service status
 ## Quick Links
 
 - [Main README](../README.md) - Project overview and quick start
-- [GitHub Repository](https://github.com/silvabyte/ChezWizper) - Source code and issue tracker
+- [GitHub Repository](https://github.com/silvabyte/Audetic) - Source code and issue tracker

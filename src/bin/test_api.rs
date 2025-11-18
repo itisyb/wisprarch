@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chezwizper::whisper::{ProviderConfig, WhisperTranscriber};
+use audetic::whisper::{ProviderConfig, WhisperTranscriber};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
