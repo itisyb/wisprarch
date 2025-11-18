@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/banner.png" alt="Audetic Icon" height="80"/>
+  <img src="./assets/banner.png" alt="Audetic" />
 
   <br/>
   <br/>
