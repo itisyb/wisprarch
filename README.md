@@ -4,14 +4,12 @@
   <br/>
   <br/>
 
-  Voice to Text application for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application.
+  Voice to Text application for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application... Basically superwhisper for Omarchy.
 </div>
 
 <br/>
 
-Basically superwhisper for Omarchy.
-
-📚 **[View Documentation](./docs/index.md)** - Detailed guides and configuration
+**[View Documentation](./docs/index.md)** - Detailed guides and configuration
 
 ## Quick Install (Omarchy + Arch Linux)
 
