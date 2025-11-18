@@ -1,6 +1,16 @@
-# Audetic
+<div align="center">
+  <img src="./assets/audetic_icon_light.svg" alt="Audetic Icon" height="80"/>
+  <img src="./assets/audetic_logo_light.svg" alt="Audetic Logo" height="80"/>
 
-Voice transcription tool for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application.
+  <br/>
+  <br/>
+
+  Voice to Text application for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application.
+</div>
+
+<br/>
+
+Basically superwhisper for Omarchy.
 
 📚 **[View Documentation](./docs/index.md)** - Detailed guides and configuration
 
@@ -15,6 +25,7 @@ make install
 This automatically installs dependencies, builds Audetic with optimized Whisper, sets up services, and configures keybinds.
 
 **After installation:**
+
 1. Start the service: `make start`
 2. Add to Hyprland config: `bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle`
 3. Press Super+R to start recording!

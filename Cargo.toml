@@ -3,7 +3,7 @@ name = "audetic"
 version = "0.1.0"
 edition = "2021"
 authors = ["Mat Silva"]
-description = "Voice transcription tool for Wayland/Hyprland"
+description = "Voice To Text Application for Wayland/Hyprland"
 license = "MIT"
 
 [[bin]]
