@@ -2,6 +2,8 @@ use anyhow::{Context, Result};
 use std::path::PathBuf;
 use tracing::{info, warn};
 
+use crate::normalizer::TranscriptionNormalizer;
+
 mod transcription_service;
 
 pub mod providers;
@@ -12,12 +14,12 @@ pub use providers::{
 
 pub use transcription_service::TranscriptionService;
 
-pub struct WhisperTranscriber {
+pub struct Transcriber {
     provider: Box<dyn TranscriptionProvider>,
     language: String,
 }
 
-impl WhisperTranscriber {
+impl Transcriber {
     pub fn auto_detect(config: ProviderConfig) -> Result<Self> {
         let language = config.language.unwrap_or_else(|| "en".to_string());
         let provider = Self::auto_detect_provider(config.command_path)?;
@@ -97,8 +99,8 @@ impl WhisperTranscriber {
             .await
     }
 
-    pub fn is_openai_whisper(&self) -> bool {
-        self.provider.name() == "OpenAI Whisper CLI"
+    pub fn normalizer(&self) -> Result<Box<dyn TranscriptionNormalizer>> {
+        self.provider.normalizer()
     }
 }
 

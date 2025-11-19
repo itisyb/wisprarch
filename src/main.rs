@@ -24,7 +24,7 @@ use crate::audio::{
 use crate::clipboard::ClipboardManager;
 use crate::config::Config;
 use crate::text_injection::TextInjector;
-use crate::transcription::{ProviderConfig, TranscriptionService, WhisperTranscriber};
+use crate::transcription::{ProviderConfig, Transcriber, TranscriptionService};
 use crate::ui::Indicator;
 
 #[derive(Parser)]
@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
             api_endpoint: config.whisper.api_endpoint.clone(),
             api_key: config.whisper.api_key.clone(),
         };
-        WhisperTranscriber::with_provider(provider, provider_config)?
+        Transcriber::with_provider(provider, provider_config)?
     } else {
         // Auto-detect provider when no provider specified
         let provider_config = ProviderConfig {
@@ -80,7 +80,7 @@ async fn main() -> Result<()> {
             api_endpoint: config.whisper.api_endpoint.clone(),
             api_key: config.whisper.api_key.clone(),
         };
-        WhisperTranscriber::auto_detect(provider_config)?
+        Transcriber::auto_detect(provider_config)?
     };
 
     // Compose transcription service with whisper and normalizer

@@ -7,6 +7,7 @@ use tracing::{error, info};
 use which::which;
 
 use super::TranscriptionProvider;
+use crate::normalizer::TranscriptionNormalizer;
 
 pub struct OpenAIWhisperCliProvider {
     command_path: PathBuf,
@@ -64,6 +65,10 @@ impl TranscriptionProvider for OpenAIWhisperCliProvider {
         self.command_path.exists()
     }
 
+    fn normalizer(&self) -> Result<Box<dyn TranscriptionNormalizer>> {
+        Ok(Box::new(OpenAIWhisperNormalizer::new()))
+    }
+
     fn transcribe<'a>(
         &'a self,
         audio_path: &'a Path,
@@ -113,5 +118,38 @@ impl TranscriptionProvider for OpenAIWhisperCliProvider {
 
             Ok(transcription)
         })
+    }
+}
+
+struct OpenAIWhisperNormalizer;
+
+impl OpenAIWhisperNormalizer {
+    fn new() -> Self {
+        Self
+    }
+}
+
+impl TranscriptionNormalizer for OpenAIWhisperNormalizer {
+    fn normalize(&self, raw_output: &str) -> String {
+        raw_output.trim().to_string()
+    }
+
+    fn name(&self) -> &'static str {
+        "OpenAIWhisperNormalizer"
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_openai_whisper_normalizer() {
+        let normalizer = OpenAIWhisperNormalizer::new();
+
+        let input = "  This is clean text  ";
+        let expected = "This is clean text";
+
+        assert_eq!(normalizer.normalize(input), expected);
     }
 }
