@@ -20,6 +20,7 @@ SKIP_TAG="${SKIP_TAG:-0}"
 USE_CROSS="${USE_CROSS:-0}"
 EXTRA_FEATURES="${EXTRA_FEATURES:-}"
 RELEASE_DATE="${RELEASE_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+RELEASE_ROOT=""
 
 TMP_WORK="$(mktemp -d -t audetic-release.XXXXXX)"
 trap 'rm -rf "$TMP_WORK"' EXIT
@@ -235,7 +236,7 @@ Files:
 Installation instructions: https://install.audetic.ai/
 EOF
 
-  local release_dir="release/cli/releases/$VERSION/$target_id"
+  local release_dir="$RELEASE_ROOT"
   local archive_name="audetic-$VERSION-$target_id.tar.gz"
   local archive_path="$release_dir/$archive_name"
   mkdir -p "$release_dir"
@@ -247,7 +248,7 @@ EOF
   size="$(file_size_bytes "$archive_path")"
 
   local notes_url="https://install.audetic.ai/cli/releases/$VERSION/notes.md"
-  update_manifest "$release_dir/../manifest.json" "$VERSION" "$CHANNEL" "$RELEASE_DATE" "$target_id" "$archive_name" "$sha" "$size" "$notes_url"
+  update_manifest "$release_dir/manifest.json" "$VERSION" "$CHANNEL" "$RELEASE_DATE" "$target_id" "$archive_name" "$sha" "$size" "$notes_url"
 
   ARTIFACT_SUMMARY+=("$target_id|$archive_path|$sha|$size")
 }
@@ -288,9 +289,9 @@ main() {
   ensure_clean_git
   maybe_run_tests
 
-  local release_root="release/cli/releases/$VERSION"
-  mkdir -p "$release_root"
-  create_notes_if_missing "$release_root/notes.md"
+  RELEASE_ROOT="release/cli/releases/$VERSION"
+  mkdir -p "$RELEASE_ROOT"
+  create_notes_if_missing "$RELEASE_ROOT/notes.md"
 
   write_version_file
 

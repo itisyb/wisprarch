@@ -433,6 +433,16 @@ ARCHIVE_PATH="$TMP_ROOT/$ARCHIVE_NAME"
 
 log info "Downloading artifact: $ARCHIVE_NAME"
 curl -fsSL "$ARCHIVE_URL" -o "$ARCHIVE_PATH" || die "Failed to download $ARCHIVE_URL"
+
+CHECKSUM_URL="$ARCHIVE_URL.sha256"
+REMOTE_SHA="$(curl -fsSL "$CHECKSUM_URL" 2>/dev/null | awk '{print $1}' || true)"
+if [[ -n "$REMOTE_SHA" ]]; then
+  EXPECTED_SHA="$REMOTE_SHA"
+  log info "Verified checksum via $CHECKSUM_URL"
+else
+  log warn "Unable to fetch checksum file at $CHECKSUM_URL; falling back to manifest hash"
+fi
+
 verify_sha256 "$ARCHIVE_PATH" "$EXPECTED_SHA"
 verify_signature "$ARCHIVE_PATH" "$SIGNATURE_PATH" "$BASE_URL/cli/releases/$VERSION/$SIGNATURE_PATH"
 

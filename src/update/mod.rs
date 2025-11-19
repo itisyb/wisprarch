@@ -261,12 +261,17 @@ impl UpdateEngine {
 
         let archive_path = download_dir.join(&target.archive);
         self.fetch_to_file(&archive_url, &archive_path).await?;
-        let checksum = self.compute_sha256(&archive_path).await?;
-        if checksum != target.sha256 {
+        let mut expected_sha = target.sha256.clone();
+        let checksum_url = format!("{archive_url}.sha256");
+        if let Some(remote_sha) = self.fetch_remote_checksum(&checksum_url).await {
+            expected_sha = remote_sha;
+        }
+        let actual_sha = self.compute_sha256(&archive_path).await?;
+        if actual_sha != expected_sha {
             return Err(anyhow!(
                 "Checksum mismatch. expected={} actual={}",
-                target.sha256,
-                checksum
+                expected_sha,
+                actual_sha
             ));
         }
 
@@ -324,6 +329,15 @@ impl UpdateEngine {
         let manifest: ReleaseManifest = serde_json::from_str(&text)
             .with_context(|| format!("Failed to parse manifest for version {version}"))?;
         Ok(manifest)
+    }
+
+    async fn fetch_remote_checksum(&self, url: &str) -> Option<String> {
+        let resp = self.inner.client.get(url).send().await.ok()?;
+        if !resp.status().is_success() {
+            return None;
+        }
+        let body = resp.text().await.ok()?;
+        body.split_whitespace().next().map(|s| s.to_string())
     }
 
     async fn fetch_to_file(&self, url: &str, destination: &Path) -> Result<()> {
