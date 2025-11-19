@@ -1,11 +1,10 @@
 pub mod api;
 pub mod app;
 pub mod audio;
-pub mod clipboard;
 pub mod config;
 pub mod global;
 pub mod normalizer;
-pub mod text_injection;
+pub mod text_io;
 pub mod transcription;
 pub mod ui;
 pub mod update;

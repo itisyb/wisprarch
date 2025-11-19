@@ -4,9 +4,8 @@ use crate::api::{ApiCommand, ApiServer};
 use crate::audio::{
     AudioStreamManager, BehaviorOptions, RecordingMachine, RecordingPhase, RecordingStatusHandle,
 };
-use crate::clipboard::ClipboardManager;
 use crate::config::Config;
-use crate::text_injection::TextInjector;
+use crate::text_io::TextIoService;
 use crate::transcription::{ProviderConfig, Transcriber, TranscriptionService};
 use crate::ui::Indicator;
 use crate::update::{UpdateConfig, UpdateEngine};
@@ -26,8 +25,10 @@ pub async fn run_service() -> Result<()> {
     let whisper = build_transcriber(&config)?;
     let transcription_service = Arc::new(TranscriptionService::new(whisper)?);
 
-    let text_injector = TextInjector::new(Some(&config.wayland.input_method))?;
-    let clipboard = ClipboardManager::new()?.with_preserve(config.behavior.preserve_clipboard);
+    let text_io = TextIoService::new(
+        Some(&config.wayland.input_method),
+        config.behavior.preserve_clipboard,
+    )?;
     let indicator =
         Indicator::from_config(&config.ui).with_audio_feedback(config.behavior.audio_feedback);
 
@@ -36,8 +37,7 @@ pub async fn run_service() -> Result<()> {
         audio_recorder.clone(),
         transcription_service,
         indicator,
-        text_injector,
-        clipboard,
+        text_io,
         BehaviorOptions {
             auto_paste: config.behavior.auto_paste,
             delete_audio_files: config.behavior.delete_audio_files,

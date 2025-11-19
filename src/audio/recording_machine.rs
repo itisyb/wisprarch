@@ -6,8 +6,7 @@ use tokio::sync::Mutex;
 use tracing::{debug, error, info, warn};
 
 use crate::audio::AudioStreamManager;
-use crate::clipboard::ClipboardManager;
-use crate::text_injection::TextInjector;
+use crate::text_io::TextIoService;
 use crate::transcription::TranscriptionService;
 use crate::ui::Indicator;
 
@@ -72,8 +71,7 @@ pub struct RecordingMachine {
     audio: Arc<Mutex<AudioStreamManager>>,
     transcription: Arc<TranscriptionService>,
     indicator: Indicator,
-    text_injector: TextInjector,
-    clipboard: Arc<Mutex<ClipboardManager>>,
+    text_io: TextIoService,
     behavior: BehaviorOptions,
     status: RecordingStatusHandle,
 }
@@ -83,8 +81,7 @@ impl RecordingMachine {
         audio: Arc<Mutex<AudioStreamManager>>,
         transcription: Arc<TranscriptionService>,
         indicator: Indicator,
-        text_injector: TextInjector,
-        clipboard: ClipboardManager,
+        text_io: TextIoService,
         behavior: BehaviorOptions,
         status: RecordingStatusHandle,
     ) -> Self {
@@ -92,8 +89,7 @@ impl RecordingMachine {
             audio,
             transcription,
             indicator,
-            text_injector,
-            clipboard: Arc::new(Mutex::new(clipboard)),
+            text_io,
             behavior,
             status,
         }
@@ -183,8 +179,7 @@ impl RecordingMachine {
         let indicator_for_error = self.indicator.clone();
 
         let transcription = Arc::clone(&self.transcription);
-        let text_injector = self.text_injector.clone();
-        let clipboard = Arc::clone(&self.clipboard);
+        let text_io = self.text_io.clone();
         let behavior = self.behavior;
         let status = self.status.clone();
 
@@ -192,8 +187,7 @@ impl RecordingMachine {
             let result = RecordingMachine::run_processing_task(
                 transcription,
                 indicator_for_task,
-                text_injector,
-                clipboard,
+                text_io,
                 behavior,
                 temp_path,
             )
@@ -219,8 +213,7 @@ impl RecordingMachine {
     async fn run_processing_task(
         transcription: Arc<TranscriptionService>,
         indicator: Indicator,
-        text_injector: TextInjector,
-        clipboard: Arc<Mutex<ClipboardManager>>,
+        text_io: TextIoService,
         behavior: BehaviorOptions,
         temp_path: PathBuf,
     ) -> Result<()> {
@@ -231,17 +224,14 @@ impl RecordingMachine {
                     let _ = indicator.show_error("No speech detected").await;
                 } else {
                     info!("Transcription complete: {} chars", text.len());
-                    {
-                        let mut clip = clipboard.lock().await;
-                        if let Err(e) = clip.copy_with_wayland_fallback(&text).await {
-                            error!("Failed to copy to clipboard: {}", e);
-                        }
+                    if let Err(e) = text_io.copy_to_clipboard(&text).await {
+                        error!("Failed to copy to clipboard: {}", e);
                     }
 
                     if behavior.auto_paste {
-                        if let Err(e) = text_injector.inject_text(&text).await {
+                        if let Err(e) = text_io.inject_text(&text).await {
                             error!("Failed to inject text: {}", e);
-                            let _ = text_injector.paste_from_clipboard().await;
+                            let _ = text_io.paste_from_clipboard().await;
                         }
                     }
 
