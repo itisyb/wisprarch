@@ -26,3 +26,6 @@ Thumbs.db
 /release/cli/releases/**/tmp/**
 !/release/cli/releases/**/manifest.json
 !/release/cli/releases/**/notes.md
+
+# node
+node_modules/

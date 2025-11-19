@@ -71,7 +71,7 @@ impl ApiServer {
 async fn status() -> Json<Value> {
     Json(json!({
         "service": "audetic",
-        "version": "0.1.0",
+        "version": env!("CARGO_PKG_VERSION"),
         "status": "running"
     }))
 }

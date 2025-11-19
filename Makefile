@@ -34,7 +34,10 @@ help:
 	@echo "  make status    - Check service status"
 	@echo ""
 	@echo "  make clean     - Clean build artifacts"
-	@echo "  make deploy    - Build/package/publish release artifacts (env: VERSION, TARGETS, CHANNEL, DRY_RUN=1, SKIP_TESTS=1, ALLOW_DIRTY=1, USE_CROSS=1)"
+	@echo "  make deploy    - Build/package/publish release artifacts (auto-bumps when VERSION unset;"
+	@echo "                   env: VERSION, VERSION_AUTO_BUMP=patch|minor|major|none, TARGETS, CHANNEL, DRY_RUN=1,"
+	@echo "                   SKIP_TESTS=1, SKIP_TAG=1, ALLOW_DIRTY=1, USE_CROSS=1, EXTRA_FEATURES, AUTO_COMMIT=0,"
+	@echo "                   CONTINUE_ON_ERROR=1)"
 
 # Build commands
 build:
@@ -70,7 +73,8 @@ deploy:
 	 SKIP_TAG=$(SKIP_TAG) \
 	 USE_CROSS=$(USE_CROSS) \
 	 EXTRA_FEATURES="$(EXTRA_FEATURES)" \
-	 ./scripts/release/deploy.sh
+	 AUTO_COMMIT=$(AUTO_COMMIT) \
+	 bun ./scripts/release/deploy.ts
 
 # Installation and service management
 install:
