@@ -97,10 +97,10 @@ try {
 
 if (!config.dryRun) {
 	await writeManifest(version, artifacts);
-	await maybeCommit(version);
 	if (failures.length === 0) {
 		await publishAssets();
 		await tagRelease(version);
+		await commitAndPush(version);
 	} else {
 		console.warn("Skipping publish/tag because some targets failed.");
 	}
@@ -398,33 +398,6 @@ async function writeManifest(version: string, artifacts: Artifact[]) {
 	await Bun.write(manifestPath, `${JSON.stringify(next, null, 2)}\n`);
 }
 
-async function maybeCommit(version: string) {
-	if (config.dryRun || !config.autoCommit) {
-		return;
-	}
-	const files = ["release/cli/version", "Cargo.toml"];
-	if (await pathExists(CARGO_LOCK)) {
-		files.push("Cargo.lock");
-	}
-	for (const file of files) {
-		await $`git add -- ${file}`;
-	}
-	const staged = (await $`git diff --cached --name-only`.text()).trim();
-	if (!staged) {
-		return;
-	}
-	await $`git commit -m ${`chore(release): v${version}`}`;
-}
-
-async function pathExists(filePath: string) {
-	try {
-		await access(filePath);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
 async function publishAssets() {
 	if (!Bun.which("godeploy")) {
 		console.warn("godeploy not found; skipping publish step.");
@@ -449,6 +422,32 @@ async function tagRelease(version: string) {
 	}
 	await $`git tag -a ${`v${version}`} -m ${`Audetic ${version}`}`;
 	await $`git push origin ${`v${version}`}`;
+}
+
+async function commitAndPush(version: string) {
+	if (config.dryRun) {
+		console.log("==> [dry-run] skip git commit/push");
+		return;
+	}
+	if (!config.autoCommit) {
+		console.log("==> Skipping git commit/push (AUTO_COMMIT=0)");
+		return;
+	}
+
+	console.log("==> Staging release artifacts");
+	await $`git add --all`;
+	const staged = (await $`git diff --cached --name-only`.text()).trim();
+	if (!staged) {
+		console.log("==> Nothing to commit");
+		return;
+	}
+
+	const message =
+		env.RELEASE_COMMIT_MESSAGE?.trim() || `chore(release): v${version}`;
+	console.log(`==> git commit -m "${message}"`);
+	await $`git commit -m ${message}`;
+	console.log("==> git push");
+	await $`git push`;
 }
 
 function printSummary(artifacts: Artifact[], failures: TargetFailure[]) {
