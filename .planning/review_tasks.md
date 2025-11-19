@@ -64,8 +64,8 @@
 - [ ] **Deduplicate provider configuration building**  
   Add a `ProviderConfig::from_whisper_config(&Config)` helper so both explicit and auto-detected provider paths share one construction and new config fields can be threaded uniformly.
 
-- [ ] **Consolidate clipboard + text injection fallbacks**  
-  Create a single clipboard service that handles preservation, verification, and wl-copy/xclip/ydotool fallbacks so `ClipboardManager` and `TextInjector` stop duplicating backend selection logic.
+- [x] **Consolidate clipboard + text injection fallbacks**  
+  ✅ Replaced `ClipboardManager`/`TextInjector` with a unified `TextIoService` that handles preservation, detection, and wl-copy/xclip/ydotool/wtype fallbacks behind a single API.
 
 - [ ] **Cache text-injection environment detection**  
   Persist the chosen paste strategy/backend after the first detection instead of probing `ydotool`, `wtype`, `xdotool`, etc. on every injection to cut latency and redundant command execution.
