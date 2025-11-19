@@ -3,6 +3,7 @@ use std::process::Command;
 use tracing::{debug, info, warn};
 use which::which;
 
+#[derive(Clone)]
 pub struct TextInjector {
     method: InjectionMethod,
 }

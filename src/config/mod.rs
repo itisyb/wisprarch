@@ -15,8 +15,8 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct WhisperConfig {
-    pub model: String,
-    pub language: String,
+    pub model: Option<String>,
+    pub language: Option<String>,
     pub command_path: Option<String>,
     pub model_path: Option<String>,
     pub api_endpoint: Option<String>,
@@ -63,8 +63,8 @@ fn default_audio_feedback() -> bool {
 impl Default for WhisperConfig {
     fn default() -> Self {
         Self {
-            model: "base".to_string(),
-            language: "en".to_string(),
+            model: Some("base".to_string()),
+            language: Some("en".to_string()),
             command_path: None,
             model_path: None,
             api_endpoint: Some("https://api.openai.com/v1/audio/transcriptions".to_string()),
@@ -86,8 +86,8 @@ impl Default for UiConfig {
 impl Default for WaybarConfig {
     fn default() -> Self {
         Self {
-            idle_text: "󰑊".to_string(),       // Nerd Font circle with dot (idle)
-            recording_text: "󰻃".to_string(),  // Nerd Font record button (recording)
+            idle_text: "󰑊".to_string(),      // Nerd Font circle with dot (idle)
+            recording_text: "󰻃".to_string(), // Nerd Font record button (recording)
             idle_tooltip: "Press Super+R to record".to_string(),
             recording_tooltip: "Recording... Press Super+R to stop".to_string(),
         }

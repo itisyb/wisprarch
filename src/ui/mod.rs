@@ -3,6 +3,7 @@ use anyhow::Result;
 use std::process::Command;
 use tracing::{debug, info, warn};
 
+#[derive(Clone)]
 pub struct Indicator {
     audio_feedback_enabled: bool,
     notification_color: String,

@@ -1,3 +1,4 @@
+use crate::audio::{RecordingPhase, RecordingStatus, RecordingStatusHandle};
 use crate::config::{Config, WaybarConfig};
 use anyhow::Result;
 use axum::{
@@ -9,8 +10,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc;
 use tower::ServiceBuilder;
 use tracing::{error, info};
 
@@ -22,7 +22,7 @@ pub enum ApiCommand {
 #[derive(Clone)]
 pub struct AppState {
     tx: mpsc::Sender<ApiCommand>,
-    recording: Arc<Mutex<bool>>,
+    status: RecordingStatusHandle,
     waybar_config: WaybarConfig,
 }
 
@@ -32,12 +32,16 @@ pub struct ApiServer {
 }
 
 impl ApiServer {
-    pub fn new(tx: mpsc::Sender<ApiCommand>, recording: Arc<Mutex<bool>>, config: &Config) -> Self {
+    pub fn new(
+        tx: mpsc::Sender<ApiCommand>,
+        status: RecordingStatusHandle,
+        config: &Config,
+    ) -> Self {
         Self {
             port: 3737, // WHSP in numbers
             state: AppState {
                 tx,
-                recording,
+                status,
                 waybar_config: config.ui.waybar.clone(),
             },
         }
@@ -92,28 +96,51 @@ async fn recording_status(
     Query(params): Query<HashMap<String, String>>,
     State(state): State<AppState>,
 ) -> Json<Value> {
-    let recording = *state.recording.lock().await;
+    let status = state.status.get().await;
 
     // Check if waybar style is requested
     if params.get("style") == Some(&"waybar".to_string()) {
-        return Json(generate_waybar_response(recording, &state.waybar_config));
+        return Json(generate_waybar_response(&status, &state.waybar_config));
     }
 
     // Default JSON response
     Json(json!({
-        "recording": recording,
-        "status": if recording { "recording" } else { "idle" }
+        "recording": status.phase == RecordingPhase::Recording,
+        "phase": status.phase.as_str(),
+        "last_error": status.last_error,
     }))
 }
 
-fn generate_waybar_response(recording: bool, config: &WaybarConfig) -> Value {
+fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> Value {
+    let (text, class, tooltip) = match status.phase {
+        RecordingPhase::Idle => (
+            config.idle_text.clone(),
+            "audetic-idle".to_string(),
+            config.idle_tooltip.clone(),
+        ),
+        RecordingPhase::Recording => (
+            config.recording_text.clone(),
+            "audetic-recording".to_string(),
+            config.recording_tooltip.clone(),
+        ),
+        RecordingPhase::Processing => (
+            "󰦖".to_string(),
+            "audetic-processing".to_string(),
+            "Processing transcription".to_string(),
+        ),
+        RecordingPhase::Error => (
+            "".to_string(),
+            "audetic-error".to_string(),
+            status
+                .last_error
+                .clone()
+                .unwrap_or_else(|| "Recording error".to_string()),
+        ),
+    };
+
     json!({
-        "text": if recording { &config.recording_text } else { &config.idle_text },
-        "class": if recording { "audetic-recording" } else { "audetic-idle" },
-        "tooltip": if recording {
-            &config.recording_tooltip
-        } else {
-            &config.idle_tooltip
-        }
+        "text": text,
+        "class": class,
+        "tooltip": tooltip
     })
 }
