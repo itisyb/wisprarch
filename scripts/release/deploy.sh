@@ -25,13 +25,14 @@ TMP_WORK="$(mktemp -d -t audetic-release.XXXXXX)"
 trap 'rm -rf "$TMP_WORK"' EXIT
 
 log() {
-  local level="$1"; shift
+  local level="$1"
+  shift
   case "$level" in
-    info) echo -e "${BLUE}==>${RESET} $*";;
-    success) echo -e "${GREEN}✓${RESET} $*";;
-    warn) echo -e "${YELLOW}!${RESET} $*";;
-    error) echo -e "${RED}✗${RESET} $*";;
-    *) echo "$@";;
+    info) echo -e "${BLUE}==>${RESET} $*" ;;
+    success) echo -e "${GREEN}✓${RESET} $*" ;;
+    warn) echo -e "${YELLOW}!${RESET} $*" ;;
+    error) echo -e "${RED}✗${RESET} $*" ;;
+    *) echo "$@" ;;
   esac
 }
 
@@ -87,10 +88,10 @@ maybe_run_tests() {
 
 map_rust_target() {
   case "$1" in
-    linux-x86_64-gnu) echo "x86_64-unknown-linux-gnu";;
-    linux-aarch64-gnu) echo "aarch64-unknown-linux-gnu";;
-    macos-aarch64) echo "aarch64-apple-darwin";;
-    macos-x86_64) echo "x86_64-apple-darwin";;
+    linux-x86_64-gnu) echo "x86_64-unknown-linux-gnu" ;;
+    linux-aarch64-gnu) echo "aarch64-unknown-linux-gnu" ;;
+    macos-aarch64) echo "aarch64-apple-darwin" ;;
+    macos-x86_64) echo "x86_64-apple-darwin" ;;
     *)
       die "Unknown target identifier: $1"
       ;;
@@ -106,7 +107,7 @@ file_size_bytes() {
       stat -f%z "$file"
     fi
   else
-    python3 - <<'PY' "$file"
+    python3 - "$file" <<'PY'
 import os, sys
 print(os.path.getsize(sys.argv[1]))
 PY
@@ -134,7 +135,7 @@ update_manifest() {
   local sha="$7"
   local size="$8"
   local notes_url="$9"
-  python3 - <<'PY' "$manifest" "$version" "$channel" "$release_date" "$target_id" "$archive_name" "$sha" "$size" "$notes_url"
+  python3 - "$manifest" "$version" "$channel" "$release_date" "$target_id" "$archive_name" "$sha" "$size" "$notes_url" <<'PY'
 import json, sys, pathlib, datetime
 manifest_path = pathlib.Path(sys.argv[1])
 version, channel, release_date, target_id, archive, sha, size, notes_url = sys.argv[2:]
@@ -163,7 +164,7 @@ create_notes_if_missing() {
   if [[ -f "$notes_file" || "$DRY_RUN" == "1" ]]; then
     return
   fi
-  cat > "$notes_file" <<EOF
+  cat >"$notes_file" <<EOF
 # Audetic $VERSION
 
 - TODO: describe highlights for this release.
@@ -175,7 +176,7 @@ write_version_file() {
   if [[ "$DRY_RUN" == "1" ]]; then
     log info "[dry-run] would update $version_file to $VERSION"
   else
-    echo "$VERSION" > "$version_file"
+    echo "$VERSION" >"$version_file"
   fi
 }
 
@@ -223,7 +224,7 @@ package_target() {
   strip_binary_if_possible "$stage/audetic"
   cp audetic.service "$stage/audetic.service"
   cp example_config.toml "$stage/example_config.toml"
-  cat > "$stage/README.txt" <<EOF
+  cat >"$stage/README.txt" <<EOF
 Audetic $VERSION ($target_id)
 
 Files:
@@ -241,7 +242,7 @@ EOF
   tar -C "$stage" -czf "$archive_path" .
   local sha
   sha="$(sha256_file "$archive_path")"
-  echo "$sha  $archive_name" > "${archive_path}.sha256"
+  echo "$sha  $archive_name" >"${archive_path}.sha256"
   local size
   size="$(file_size_bytes "$archive_path")"
 
@@ -308,7 +309,7 @@ main() {
   if [[ "${#ARTIFACT_SUMMARY[@]}" -gt 0 ]]; then
     log success "Artifacts ready:"
     for entry in "${ARTIFACT_SUMMARY[@]}"; do
-      IFS="|" read -r target path sha size <<< "$entry"
+      IFS="|" read -r target path sha size <<<"$entry"
       echo "  - $target -> $path (sha256: $sha, size: $size bytes)"
     done
   else

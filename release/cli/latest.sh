@@ -36,14 +36,15 @@ REPO_RAW_BASE="${AUDETIC_GITHUB_RAW:-https://raw.githubusercontent.com/silvabyte
 TMP_ROOT=""
 
 log() {
-  local level="$1"; shift
+  local level="$1"
+  shift
   case "$level" in
-    info) echo -e "${BLUE}==>${RESET} $*";;
-    success) echo -e "${GREEN}✓${RESET} $*";;
-    warn) echo -e "${YELLOW}!${RESET} $*";;
-    error) echo -e "${RED}✗${RESET} $*";;
-    title) echo -e "${BOLD}$*${RESET}";;
-    *) echo "$@";;
+    info) echo -e "${BLUE}==>${RESET} $*" ;;
+    success) echo -e "${GREEN}✓${RESET} $*" ;;
+    warn) echo -e "${YELLOW}!${RESET} $*" ;;
+    error) echo -e "${RED}✗${RESET} $*" ;;
+    title) echo -e "${BOLD}$*${RESET}" ;;
+    *) echo "$@" ;;
   esac
 }
 
@@ -140,7 +141,7 @@ parse_args() {
         UNINSTALL_ONLY=true
         shift
         ;;
-      --help|-h)
+      --help | -h)
         usage
         exit 0
         ;;
@@ -158,8 +159,8 @@ detect_target() {
   case "$os" in
     Linux)
       case "$arch" in
-        x86_64) echo "linux-x86_64-gnu";;
-        aarch64|arm64) echo "linux-aarch64-gnu";;
+        x86_64) echo "linux-x86_64-gnu" ;;
+        aarch64 | arm64) echo "linux-aarch64-gnu" ;;
         *)
           die "Unsupported Linux architecture: $arch"
           ;;
@@ -167,8 +168,8 @@ detect_target() {
       ;;
     Darwin)
       case "$arch" in
-        arm64) echo "macos-aarch64";;
-        x86_64) echo "macos-x86_64";;
+        arm64) echo "macos-aarch64" ;;
+        x86_64) echo "macos-x86_64" ;;
         *)
           die "Unsupported macOS architecture: $arch"
           ;;
@@ -210,7 +211,7 @@ download_manifest() {
 extract_target_metadata() {
   local manifest="$1"
   local target="$2"
-  python3 - <<'PY' "$manifest" "$target"
+  python3 - "$manifest" "$target" <<'PY'
 import json, sys, pathlib
 manifest_path = pathlib.Path(sys.argv[1])
 target_id = sys.argv[2]
@@ -344,7 +345,7 @@ install_service_unit() {
 
 write_update_state() {
   ensure_dir "$CONFIG_DIR"
-  cat > "$STATE_FILE" <<JSON
+  cat >"$STATE_FILE" <<JSON
 {
   "current_version": "$1",
   "channel": "$CHANNEL",
@@ -424,7 +425,7 @@ log info "Mode          : $([[ $SYSTEM_MODE == true ]] && echo system || echo us
 MANIFEST_PATH="$(download_manifest "$VERSION")"
 TARGET_METADATA="$(extract_target_metadata "$MANIFEST_PATH" "$TARGET_TRIPLE" || true)"
 [[ -z "$TARGET_METADATA" ]] && die "Target $TARGET_TRIPLE not available in manifest"
-IFS="|" read -r ARCHIVE_NAME EXPECTED_SHA SIGNATURE_PATH TARGET_SIZE <<< "$TARGET_METADATA"
+IFS="|" read -r ARCHIVE_NAME EXPECTED_SHA SIGNATURE_PATH TARGET_SIZE <<<"$TARGET_METADATA"
 [[ -z "$ARCHIVE_NAME" || -z "$EXPECTED_SHA" ]] && die "Manifest missing archive or checksum for $TARGET_TRIPLE"
 
 ARCHIVE_URL="$BASE_URL/cli/releases/$VERSION/$ARCHIVE_NAME"
