@@ -1,6 +1,7 @@
 pub mod api;
 pub mod app;
 pub mod audio;
+pub mod cli;
 pub mod config;
 pub mod global;
 pub mod normalizer;

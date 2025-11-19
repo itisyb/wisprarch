@@ -603,6 +603,8 @@ pub struct UpdateReport {
     pub current_version: String,
     pub remote_version: Option<String>,
     pub message: String,
+    pub installed: bool,
+    pub restart_required: bool,
 }
 
 impl UpdateReport {
@@ -611,6 +613,8 @@ impl UpdateReport {
             current_version: current,
             remote_version: None,
             message: "Auto-update not available on this platform".to_string(),
+            installed: false,
+            restart_required: false,
         }
     }
 
@@ -619,6 +623,8 @@ impl UpdateReport {
             current_version: current,
             remote_version: Some(remote),
             message: "Auto-update disabled. Enable it to install new versions.".to_string(),
+            installed: false,
+            restart_required: false,
         }
     }
 
@@ -627,6 +633,8 @@ impl UpdateReport {
             current_version: current,
             remote_version: Some(remote.clone()),
             message: format!("Already on latest version ({remote})."),
+            installed: false,
+            restart_required: false,
         }
     }
 
@@ -640,6 +648,8 @@ impl UpdateReport {
             current_version: current,
             remote_version: Some(remote),
             message,
+            installed: false,
+            restart_required: false,
         }
     }
 
@@ -648,6 +658,8 @@ impl UpdateReport {
             current_version: current,
             remote_version: Some(remote.clone()),
             message: format!("Update installed. Restart required to run {remote}."),
+            installed: true,
+            restart_required: true,
         }
     }
 
@@ -663,6 +675,8 @@ impl UpdateReport {
             } else {
                 "Auto-update state unchanged".to_string()
             },
+            installed: false,
+            restart_required: false,
         }
     }
 }
@@ -788,9 +802,9 @@ fn sudo_available() -> bool {
 
 fn is_permission_denied(err: &anyhow::Error) -> bool {
     err.chain().any(|cause| {
-        cause.downcast_ref::<io::Error>().map_or(false, |io_err| {
-            io_err.kind() == io::ErrorKind::PermissionDenied
-        })
+        cause
+            .downcast_ref::<io::Error>()
+            .is_some_and(|io_err| io_err.kind() == io::ErrorKind::PermissionDenied)
     })
 }
 
