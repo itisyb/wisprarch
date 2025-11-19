@@ -11,7 +11,6 @@ mod ui;
 
 use anyhow::Result;
 use clap::Parser;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
 use tracing::{error, info};
@@ -32,9 +31,6 @@ use crate::ui::Indicator;
 #[command(about = "Voice to text for Hyprland", long_about = None)]
 struct Args {
     #[arg(short, long)]
-    config: Option<PathBuf>,
-
-    #[arg(short, long)]
     verbose: bool,
 }
 
@@ -48,11 +44,7 @@ async fn main() -> Result<()> {
 
     info!("Starting Audetic");
 
-    let config = if let Some(config_path) = args.config {
-        Config::load_from_path(config_path)?
-    } else {
-        Config::load()?
-    };
+    let config = Config::load()?;
 
     // Initialize components
     let (tx, mut rx) = mpsc::channel::<ApiCommand>(10);

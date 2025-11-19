@@ -116,10 +116,6 @@ impl Default for BehaviorConfig {
 impl Config {
     pub fn load() -> Result<Self> {
         let config_path = Self::config_path()?;
-        Self::load_from_path(config_path)
-    }
-
-    pub fn load_from_path(config_path: PathBuf) -> Result<Self> {
         if !config_path.exists() {
             info!(
                 "Config file not found, creating default at {:?}",
