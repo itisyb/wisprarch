@@ -1,11 +1,11 @@
 <img src="./assets/banner.png" alt="Audetic" />
-Voice to Text application for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription via Whisper, and inject text into the focused application... Basically superwhisper for Omarchy.
-
-**[View Documentation](./docs/index.md)** - Detailed guides and configuration
+Basically superwhisper for Omarchy, Audetic is a voice to text application for Wayland/Hyprland. Press a keybind to toggle recording, get automatic transcription and inject text into the focused application/clipboard...
 
 ## Quickstart Video
 
 [![Audetic Quickstart](https://img.youtube.com/vi/8gQLqz_mosI/hqdefault.jpg)](https://youtu.be/8gQLqz_mosI)
+
+- **[View Documentation](./docs/index.md)** - Detailed guides and configuration
 
 ## Quick Install (Recommended)
 
