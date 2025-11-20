@@ -3,6 +3,10 @@ Voice to Text application for Wayland/Hyprland. Press a keybind to toggle record
 
 **[View Documentation](./docs/index.md)** - Detailed guides and configuration
 
+## Quickstart Video
+
+[![Audetic Quickstart](https://img.youtube.com/vi/8gQLqz_mosI/maxresdefault.jpg)](https://youtu.be/8gQLqz_mosI)
+
 ## Quick Install (Recommended)
 
 Audetic ships pre-built, signed binaries.
