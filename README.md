@@ -5,7 +5,7 @@ Voice to Text application for Wayland/Hyprland. Press a keybind to toggle record
 
 ## Quickstart Video
 
-[![Audetic Quickstart](https://img.youtube.com/vi/8gQLqz_mosI/maxresdefault.jpg)](https://youtu.be/8gQLqz_mosI)
+[![Audetic Quickstart](https://img.youtube.com/vi/8gQLqz_mosI/hqdefault.jpg)](https://youtu.be/8gQLqz_mosI)
 
 ## Quick Install (Recommended)
 
