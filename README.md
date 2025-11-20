@@ -21,6 +21,16 @@ curl -fsSL https://install.audetic.ai/cli/latest.sh | bash
 
 Default config at `~/.config/audetic/config.toml`. See [Configuration Guide](./docs/configuration.md) for details.
 
+### Provider CLI
+
+Audetic ships an interactive helper so you can switch transcription providers without editing TOML by hand:
+
+```bash
+audetic provider show        # inspect current provider (secrets masked)
+audetic provider configure   # interactive wizard (requires a TTY)
+audetic provider test        # validate the stored provider
+```
+
 ## Updates
 
 Audetic includes an auto-updater plus manual controls:

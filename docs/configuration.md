@@ -17,6 +17,23 @@ language = "en"
 
 Audetic will create a default configuration file on first run if none exists.
 
+## Provider CLI Helpers
+
+Instead of editing `~/.config/audetic/config.toml` manually, you can use the built-in CLI wizard:
+
+```bash
+# Show the current provider setup (masks secrets)
+audetic provider show
+
+# Launch an interactive wizard to switch providers or update credentials
+audetic provider configure
+
+# Validate the stored provider without starting a recording session
+audetic provider test
+```
+
+> **Note:** `audetic provider configure` must run in a TTY/interactive shell. When the command detects piped/stdin input it logs an info message and exits so you can update the config file manually instead.
+
 ## Complete Configuration Example
 
 Here's a full configuration file with all available options:

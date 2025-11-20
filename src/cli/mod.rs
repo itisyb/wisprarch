@@ -4,6 +4,10 @@ use clap::{Args as ClapArgs, Parser, Subcommand};
 use std::io;
 use std::process::Command;
 
+pub mod provider;
+
+pub use provider::handle_provider_command;
+
 #[derive(Parser, Debug)]
 #[command(name = "audetic")]
 #[command(about = "Voice to text for Hyprland", long_about = None)]
@@ -21,6 +25,8 @@ pub enum CliCommand {
     Update(UpdateCliArgs),
     /// Print version information
     Version,
+    /// Inspect or configure transcription providers
+    Provider(ProviderCliArgs),
 }
 
 #[derive(ClapArgs, Debug)]
@@ -40,6 +46,22 @@ pub struct UpdateCliArgs {
     /// Disable automatic background updates
     #[arg(long)]
     pub disable: bool,
+}
+
+#[derive(ClapArgs, Debug)]
+pub struct ProviderCliArgs {
+    #[command(subcommand)]
+    pub command: ProviderCommand,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ProviderCommand {
+    /// Show the current transcription provider configuration
+    Show,
+    /// Run the interactive provider configuration wizard
+    Configure,
+    /// Validate the configured provider without recording audio
+    Test,
 }
 
 pub async fn handle_update_command(args: UpdateCliArgs) -> Result<()> {
