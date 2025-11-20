@@ -87,6 +87,12 @@ Configures speech-to-text transcription providers and models.
 
 Audetic supports multiple transcription providers:
 
+**Audetic API** (`provider = "audetic-api"`)
+- **Best for:** Zero-config cloud transcription with Audetic defaults
+- **Requirements:** None (built-in, no API key required)
+- **Models:** `"base"` (automatically managed on Audetic side)
+- **Cost:** Included with Audetic
+
 **OpenAI API** (`provider = "openai-api"`)
 - **Best for:** High accuracy, no local setup
 - **Requirements:** API key in config, internet connection  

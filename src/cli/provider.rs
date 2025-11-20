@@ -91,9 +91,7 @@ fn handle_test() -> Result<()> {
 fn configure_audetic_api(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> Result<()> {
     whisper.command_path = None;
     whisper.model_path = None;
-
-    let api_key = prompt_secret(theme, "Audetic API key (sk-...)", whisper.api_key.as_ref())?;
-    whisper.api_key = Some(api_key);
+    whisper.api_key = None;
 
     let endpoint_default = whisper
         .api_endpoint
