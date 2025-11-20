@@ -214,7 +214,7 @@ ExecStart=/usr/local/bin/audetic
 Restart=always
 RestartSec=5
 Environment="RUST_LOG=info"
-MemoryLimit=6G
+MemoryMax=6G
 CPUQuota=80%
 
 [Install]
@@ -227,6 +227,8 @@ Enable and start the service:
 systemctl --user daemon-reload
 systemctl --user enable --now audetic.service
 ```
+
+> **Audio groups:** User services cannot add supplemental groups the account does not already have. Most setups that use PipeWire/ALSA through the desktop stack work without any extra privileges. If you need direct ALSA device access, add yourself to the `audio` group (followed by a re-login) or, for `latest.sh --system`, add `SupplementaryGroups=audio` via a systemd drop-in.
 
 ## Hyprland Integration
 
@@ -322,7 +324,7 @@ input_method = "ydotool"
 
 ### Memory issues
 - Large Whisper models need 3-5GB RAM
-- Adjust `MemoryLimit` in service file
+- Adjust `MemoryMax` in the service file (or remove it entirely)
 - Use smaller models if needed
 
 ### GNOME-specific issues

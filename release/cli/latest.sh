@@ -320,6 +320,9 @@ install_service_unit() {
     log warn "systemctl not found; skipping service installation. Start audetic manually."
     return 0
   fi
+  if $NO_START; then
+    log info "Service unit will be installed but not started (--no-start)."
+  fi
   if $SYSTEM_MODE; then
     local target="/etc/systemd/system/$SERVICE_NAME"
     install_with_permissions "$source" "$target" 0644
@@ -329,6 +332,7 @@ install_service_unit() {
     else
       sudo systemctl enable "$SERVICE_NAME"
     fi
+    wait_for_service_start system
   else
     local systemd_user_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
     ensure_dir "$systemd_user_dir"
@@ -340,7 +344,42 @@ install_service_unit() {
     else
       systemctl --user enable "$SERVICE_NAME" >/dev/null 2>&1 || true
     fi
+    wait_for_service_start user
   fi
+}
+
+wait_for_service_start() {
+  $NO_START && return 0
+  systemctl_available || return 0
+  local scope="$1"
+  local max_attempts=15
+  local attempt=0
+  local -a is_active_cmd status_cmd journal_cmd
+
+  if [[ "$scope" == "system" ]]; then
+    require_sudo
+    is_active_cmd=(sudo systemctl is-active "$SERVICE_NAME")
+    status_cmd=(sudo systemctl status "$SERVICE_NAME" --no-pager)
+    journal_cmd=(sudo journalctl -u "$SERVICE_NAME" -n 40 --no-pager)
+  else
+    is_active_cmd=(systemctl --user is-active "$SERVICE_NAME")
+    status_cmd=(systemctl --user status "$SERVICE_NAME" --no-pager)
+    journal_cmd=(journalctl --user -u "$SERVICE_NAME" -n 40 --no-pager)
+  fi
+
+  until "${is_active_cmd[@]}" >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if ((attempt >= max_attempts)); then
+      log error "$SERVICE_NAME failed to reach 'active' state."
+      log error "systemctl status output:"
+      "${status_cmd[@]}" || true
+      log error "Recent logs:"
+      "${journal_cmd[@]}" || true
+      die "Audetic service failed to start. Fix the errors above and rerun the installer."
+    fi
+    sleep 1
+  done
+  log success "$SERVICE_NAME is active"
 }
 
 write_update_state() {
