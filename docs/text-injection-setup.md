@@ -7,15 +7,17 @@ Audetic supports multiple methods for automatically injecting transcribed text i
 Audetic automatically detects the best available text injection method based on:
 
 1. **User preference** (if specified in config)
-2. **Available tools** on your system  
+2. **Available tools** on your system
 3. **Desktop environment** (X11 vs Wayland)
 
 The detection priority is:
-- If user specifies a method in config, try that first (with fallback if it fails)
-- Otherwise, try ydotool (most reliable on Wayland)
-- On Wayland systems with wl-copy available, prefer clipboard method
-- Try wtype (may fall back to clipboard if it fails)
+- If user specifies a method in config, try that first (with automatic fallback if it fails)
+- **ydotool** (tried first - most reliable on Wayland across KDE, GNOME, Sway, Hyprland)
+- On Wayland systems with wl-copy available, use clipboard + paste method
+- **wtype** (works on Sway, Hyprland, but not KDE/GNOME)
 - Final fallback to clipboard-only mode
+
+**Enhanced Fallback System:** If direct text injection fails (ydotool/wtype), Audetic automatically falls back to clipboard + paste simulation, ensuring text delivery even in restricted environments.
 
 ## Supported Methods
 
@@ -124,10 +126,12 @@ sudo apt install xclip xsel     # Ubuntu/Debian
 
 | Method | KDE Plasma | GNOME | Sway | Hyprland | i3/X11 |
 |--------|------------|-------|------|----------|---------|
-| ydotool | ✅ Best | ✅ Good | ✅ Good | ✅ Good | ✅ Good |
-| wtype | ❌ No | ❌ No | ✅ Good | ✅ Good | ❌ N/A |
-| Clipboard | ✅ Fallback | ✅ Fallback | ✅ Fallback | ✅ Fallback | ✅ Good |
+| ydotool | ✅ Best | ✅ Best | ✅ Best | ✅ Best | ✅ Good |
+| wtype | ❌ No (auto-fallback) | ❌ No (auto-fallback) | ✅ Good | ✅ Good | ❌ N/A |
+| Clipboard | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Good |
 | xdotool | ❌ N/A | ❌ N/A | ❌ N/A | ❌ N/A | ✅ Good |
+
+**Note:** Audetic automatically falls back to clipboard + paste when direct injection methods fail. "Auto-fallback" indicates methods that transparently switch if the primary method doesn't work.
 
 ## Troubleshooting
 
@@ -169,24 +173,28 @@ echo 'uinput' | sudo tee /etc/modules-load.d/uinput.conf
 
 ## Configuration Examples
 
-### Minimal (auto-detection)
+### Minimal (auto-detection) - Recommended
 ```toml
 [wayland]
-# input_method not specified - auto-detect best method
+# input_method not specified - auto-detects ydotool first, then falls back gracefully
 ```
 
-### Explicit ydotool
+### Explicit ydotool (Default)
 ```toml
 [wayland]
-input_method = "ydotool"
+input_method = "ydotool"  # Recommended for all Wayland compositors
+```
+
+### Explicit wtype (Sway/Hyprland only)
+```toml
+[wayland]
+input_method = "wtype"  # Works on Sway/Hyprland, auto-fallback on KDE/GNOME
 ```
 
 ### Force clipboard mode
 ```toml
 [wayland]
-# To force clipboard-only mode, set an invalid method name
-# or simply don't install ydotool/wtype
-input_method = "clipboard"  # Will fall back to clipboard
+input_method = "clipboard"  # Use clipboard + paste only, no direct injection
 ```
 
 ### Disable auto-paste

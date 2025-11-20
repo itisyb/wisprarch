@@ -150,20 +150,17 @@ mkdir -p ~/.config/audetic
 
 Audetic will create a default config on first run, or you can create one manually:
 
-### For Optimized Whisper.cpp
+### Quick Start (Audetic API - Recommended)
+
+Zero-config cloud transcription - no API key or local setup required:
 
 ```toml
 [whisper]
-model = "large-v3-turbo"
+provider = "audetic-api"  # Default: hosted service, no setup needed
 language = "en"
-command_path = "/home/user/.local/share/audetic/whisper/build/bin/whisper-cli"
-model_path = "/home/user/.local/share/audetic/whisper/models/ggml-large-v3-turbo-q5_1.bin"
-
-[ui]
-notification_color = "rgb(ff1744)"
 
 [wayland]
-input_method = "ydotool"
+input_method = "ydotool"  # Recommended (auto-detected first)
 
 [behavior]
 auto_paste = true
@@ -172,19 +169,39 @@ delete_audio_files = true
 audio_feedback = true
 ```
 
-### For OpenAI Whisper
+### Advanced: Local Processing
+
+#### For OpenAI Whisper (CLI)
 
 ```toml
 [whisper]
+provider = "openai-cli"
 model = "base"
 language = "en"
 # command_path is auto-detected if whisper is in PATH
 
-[ui]
-notification_color = "rgb(ff1744)"
+[wayland]
+input_method = "ydotool"  # Recommended (auto-detected first)
+
+[behavior]
+auto_paste = true
+preserve_clipboard = false
+delete_audio_files = true
+audio_feedback = true
+```
+
+#### For Optimized Whisper.cpp
+
+```toml
+[whisper]
+provider = "whisper-cpp"
+model = "large-v3-turbo"
+language = "en"
+command_path = "/home/user/.local/share/audetic/whisper/build/bin/whisper-cli"
+model_path = "/home/user/.local/share/audetic/whisper/models/ggml-large-v3-turbo-q5_1.bin"
 
 [wayland]
-input_method = "ydotool"
+input_method = "ydotool"  # Recommended (auto-detected first)
 
 [behavior]
 auto_paste = true
@@ -286,7 +303,7 @@ systemctl --user enable --now audetic.service
 
 ```toml
 [wayland]
-input_method = "ydotool"
+input_method = "ydotool"  # Recommended (auto-detected first)
 ```
 
 ### 3. Create GNOME Keyboard Shortcut
@@ -301,8 +318,9 @@ input_method = "ydotool"
 
 1. **Test service**: `systemctl --user status audetic.service`
 2. **Test API**: `curl -X POST http://127.0.0.1:3737/toggle`
-3. **Test recording**: Press your configured keybind
-4. **Check logs**: `make logs`
+3. **Test provider**: `audetic provider test` (validates transcription setup)
+4. **Test recording**: Press your configured keybind
+5. **Check logs**: `make logs` or `journalctl --user -u audetic.service -f`
 
 ## Troubleshooting
 

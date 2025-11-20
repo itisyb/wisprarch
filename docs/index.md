@@ -11,6 +11,23 @@ Welcome to the Audetic documentation. This directory contains detailed guides fo
 - [**Configuration Guide**](./configuration.md) - Complete configuration reference covering all Audetic settings including providers, audio, UI, and behavior
 - [Waybar Integration](./waybar-integration.md) - Add Audetic status indicators to your Waybar
 
+### CLI Commands
+
+Audetic includes built-in commands for managing transcription providers and updates:
+
+```bash
+# Provider management
+audetic provider show        # Show current provider configuration
+audetic provider configure   # Interactive provider setup wizard
+audetic provider test        # Validate provider without recording
+
+# Updates
+audetic update              # Check for and install updates
+audetic update --check      # Check version without installing
+```
+
+See the [Configuration Guide](./configuration.md#provider-cli-helpers) for detailed provider command documentation.
+
 ### Development
 
 - [**Adding Providers**](./adding-providers.md) - Complete guide for developers to add new transcription providers

@@ -29,7 +29,7 @@ idle_tooltip = "Press Super+R to record"
 recording_tooltip = "Recording... Press Super+R to stop"
 
 [wayland]
-input_method = "wtype"
+input_method = "ydotool"  # Recommended: works on KDE, GNOME, Sway, Hyprland (auto-detected first)
 
 [behavior]
 auto_paste = true

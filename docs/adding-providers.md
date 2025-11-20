@@ -8,8 +8,9 @@ Audetic uses a trait-based provider system where each transcription service impl
 
 **Current providers:**
 
+- **Audetic API** - Hosted Whisper service (default, zero-config)
 - **OpenAI API** - Cloud-based OpenAI Whisper API
-- **OpenAI CLI** - Local OpenAI Whisper CLI tool  
+- **OpenAI CLI** - Local OpenAI Whisper CLI tool
 - **whisper.cpp** - Local whisper.cpp implementation
 
 **Potential new providers:**
@@ -566,8 +567,9 @@ let _ = std::fs::remove_file(&output_path); // Cleanup
 
 Check out the existing providers for reference:
 
+- **`audetic_api.rs`** - API-based provider with base64-encoded JSON payload (simplest example)
 - **`openai_api.rs`** - API-based provider with HTTP multipart uploads
-- **`openai_cli.rs`** - CLI-based provider with binary detection and file I/O  
+- **`openai_cli.rs`** - CLI-based provider with binary detection and file I/O
 - **`whisper_cpp.rs`** - CLI-based provider with fallback strategies
 
 ## Submitting Your Provider

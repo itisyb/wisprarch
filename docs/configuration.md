@@ -19,7 +19,7 @@ Audetic will create a default configuration file on first run if none exists.
 
 ## Provider CLI Helpers
 
-Instead of editing `~/.config/audetic/config.toml` manually, you can use the built-in CLI wizard:
+Instead of editing `~/.config/audetic/config.toml` manually, you can use the built-in CLI commands:
 
 ```bash
 # Show the current provider setup (masks secrets)
@@ -31,6 +31,11 @@ audetic provider configure
 # Validate the stored provider without starting a recording session
 audetic provider test
 ```
+
+**What each command does:**
+- **`provider show`**: Displays your current provider, model, and language settings (API keys are masked for security)
+- **`provider configure`**: Interactive wizard that walks you through selecting a provider (Audetic API, OpenAI API, OpenAI CLI, whisper.cpp) and setting up credentials/paths
+- **`provider test`**: Validates your provider configuration without recording audio - useful for troubleshooting
 
 > **Note:** `audetic provider configure` must run in a TTY/interactive shell. When the command detects piped/stdin input it logs an info message and exits so you can update the config file manually instead.
 
@@ -87,11 +92,15 @@ Configures speech-to-text transcription providers and models.
 
 Audetic supports multiple transcription providers:
 
-**Audetic API** (`provider = "audetic-api"`)
-- **Best for:** Zero-config cloud transcription with Audetic defaults
-- **Requirements:** None (built-in, no API key required)
-- **Models:** `"base"` (automatically managed on Audetic side)
-- **Cost:** Included with Audetic
+**Audetic API** (`provider = "audetic-api"`) - **Default & Recommended**
+- **Best for:** Zero-config cloud transcription - just install and go
+- **Requirements:** None (no API key, no local setup, internet connection)
+- **How it works:** Sends audio to Audetic's hosted Whisper service for transcription
+- **Models:** Large-v3-turbo (automatically managed server-side)
+- **Privacy:** Audio is processed on Audetic servers, not stored permanently
+- **Cost:** Free for personal use
+- **Speed:** Fast, no local GPU/CPU requirements
+- **Why use it:** Easiest setup, consistently fast, no model management
 
 **OpenAI API** (`provider = "openai-api"`)
 - **Best for:** High accuracy, no local setup
@@ -194,6 +203,16 @@ Audetic respects these environment variables:
 | `RUST_LOG` | Logging level (`error`, `warn`, `info`, `debug`, `trace`) |
 
 ## Common Configuration Scenarios
+
+### Quick Start (Audetic API - Default)
+```toml
+[whisper]
+provider = "audetic-api"  # Zero-config hosted service
+language = "en"
+
+# That's it! No API keys, no local setup required.
+# The service automatically uses large-v3-turbo model.
+```
 
 ### For OpenAI API Users
 ```toml
