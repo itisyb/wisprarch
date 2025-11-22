@@ -50,7 +50,12 @@ impl Workflow {
         ))
     }
 
-    pub fn from_row(id: i64, workflow_type: String, json: String, created_at: String) -> Result<Workflow> {
+    pub fn from_row(
+        id: i64,
+        workflow_type: String,
+        json: String,
+        created_at: String,
+    ) -> Result<Workflow> {
         Ok(Workflow {
             id: Some(id),
             workflow_type: WorkflowType::from_str(&workflow_type)?,

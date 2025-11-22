@@ -6,12 +6,10 @@ pub fn init_db() -> Result<Connection> {
 
     // Ensure parent directory exists
     if let Some(parent) = db_path.parent() {
-        std::fs::create_dir_all(parent)
-            .context("Failed to create database directory")?;
+        std::fs::create_dir_all(parent).context("Failed to create database directory")?;
     }
 
-    let conn = Connection::open(&db_path)
-        .context("Failed to open database connection")?;
+    let conn = Connection::open(&db_path).context("Failed to open database connection")?;
 
     migrate(&conn)?;
 

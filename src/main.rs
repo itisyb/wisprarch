@@ -3,7 +3,9 @@
 use anyhow::Result;
 use audetic::{
     app,
-    cli::{handle_history_command, handle_provider_command, handle_update_command, Cli, CliCommand},
+    cli::{
+        handle_history_command, handle_provider_command, handle_update_command, Cli, CliCommand,
+    },
 };
 use clap::Parser;
 use tracing_subscriber::EnvFilter;
