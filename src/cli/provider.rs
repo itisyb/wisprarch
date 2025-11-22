@@ -96,7 +96,7 @@ fn configure_audetic_api(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> 
     let endpoint_default = whisper
         .api_endpoint
         .clone()
-        .unwrap_or_else(|| "https://audio.audetic.link/v1/transcribe".to_string());
+        .unwrap_or_else(|| "https://audio.audetic.link/api/v1/transcriptions".to_string());
     whisper.api_endpoint = Some(prompt_string_with_default(
         theme,
         "API endpoint",
