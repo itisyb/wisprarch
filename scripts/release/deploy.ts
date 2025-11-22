@@ -237,7 +237,9 @@ async function syncVersions(version: string) {
 	const versionFile = getVersionFilePath(config.channel);
 
 	if (config.dryRun) {
-		console.log(` [dry-run] would write version ${version} to ${path.basename(versionFile)}`);
+		console.log(
+			` [dry-run] would write version ${version} to ${path.basename(versionFile)}`,
+		);
 		return;
 	}
 
