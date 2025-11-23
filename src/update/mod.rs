@@ -106,9 +106,14 @@ impl UpdateEngine {
         self.inner.config.target_id.as_ref()?;
 
         let engine = self.clone();
-        let channel = channel_override.unwrap_or_else(|| engine.inner.config.channel.clone());
         let interval = engine.inner.config.check_interval;
         Some(tokio::spawn(async move {
+            // Load state to get the saved channel if no channel_override is provided
+            let state = engine.load_state().await.ok();
+            let channel = channel_override
+                .or_else(|| state.as_ref().map(|s| s.channel.clone()))
+                .unwrap_or_else(|| engine.inner.config.channel.clone());
+
             info!(
                 "Starting auto-update checks (channel={}, interval={}s)",
                 channel,
@@ -136,10 +141,12 @@ impl UpdateEngine {
             return Ok(UpdateReport::auto_update_changed(false, state.auto_update));
         }
 
+        // Load state to get the saved channel if no channel is provided in opts
+        let state = self.load_state().await?;
         let channel = opts
             .channel
             .clone()
-            .unwrap_or_else(|| self.inner.config.channel.clone());
+            .unwrap_or(state.channel);
 
         let mode = if opts.check_only {
             UpdateMode::CheckOnly
@@ -302,6 +309,7 @@ impl UpdateEngine {
             format!("version-{channel}")
         };
         let url = format!("{}/cli/{}", self.inner.config.base_url, path);
+        info!("Fetching remote version from: {}", url);
         let text = self
             .inner
             .client
