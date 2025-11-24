@@ -24,8 +24,6 @@ MemoryMax=6G
 CPUQuota=80%
 # NOTE: systemd --user cannot add supplementary groups the user does not
 # already have, so we intentionally avoid SupplementaryGroups=audio here.
-# If you install the system service variant you can add that directive via
-# a drop-in configuration.
 
 [Install]
 WantedBy=default.target

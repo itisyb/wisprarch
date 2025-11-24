@@ -25,8 +25,6 @@ help:
 	@echo "  make fmt       - Check formatting"
 	@echo "  make fix       - Fix formatting and simple lint issues"
 	@echo ""
-	@echo "  make install   - Install Audetic (Arch Linux)"
-	@echo "  make uninstall - Uninstall Audetic"
 	@echo "  make run       - Run Audetic directly"
 	@echo "  make start     - Enable and start service"
 	@echo "  make logs      - Show service logs"
@@ -87,13 +85,7 @@ deploy-stable:
 	@echo "🚀 Deploying to stable channel..."
 	@$(MAKE) deploy CHANNEL=stable
 
-# Installation and service management
-install:
-	./scripts/install.sh
-
-uninstall:
-	./scripts/uninstall.sh
-
+# Service management
 run:
 	RUST_LOG=info cargo run --release
 

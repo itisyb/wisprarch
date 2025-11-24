@@ -14,9 +14,7 @@ RESET="\033[0m"
 
 BASE_URL="${AUDETIC_INSTALL_URL:-https://install.audetic.ai}"
 CHANNEL="${AUDETIC_CHANNEL:-stable}"
-INSTALL_PREFIX="${AUDETIC_PREFIX:-/usr/local}"
 REQUESTED_VERSION=""
-SYSTEM_MODE=false
 NO_START=false
 FORCE_REINSTALL=false
 CLEAN_INSTALL=false
@@ -26,7 +24,7 @@ MINISIGN_PUBKEY="${AUDETIC_MINISIGN_PUBKEY:-}"
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/audetic"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/audetic"
-BIN_DIR="$INSTALL_PREFIX/bin"
+BIN_DIR="/usr/local/bin"
 STATE_FILE="$CONFIG_DIR/update_state.json"
 SERVICE_NAME="audetic.service"
 
@@ -62,11 +60,8 @@ usage() {
 Audetic installer
 
 Options:
-  --prefix <path>     Install prefix (default: /usr/local)
   --channel <name>    Release channel (default: stable)
   --version <v>       Install a specific version
-  --system            Install system-wide service (/etc/systemd/system)
-  --user              Force user service mode (default)
   --no-start          Do not enable/start the service after install
   --force-reinstall   Reinstall even if the version matches
   --clean             Remove previous binaries/services before reinstall; with --uninstall also removes config/cache
@@ -75,14 +70,13 @@ Options:
   --help              Show this message
 
 Environment overrides:
-  AUDETIC_INSTALL_URL   Base URL for release artifacts (default: https://install.audetic.ai)
-  AUDETIC_CHANNEL       Default channel
-  AUDETIC_PREFIX        Default install prefix
+  AUDETIC_INSTALL_URL      Base URL for release artifacts (default: https://install.audetic.ai)
+  AUDETIC_CHANNEL          Default channel
   AUDETIC_MINISIGN_PUBKEY  Minisign public key for signature verification
 
 Examples:
   curl -fsSL https://install.audetic.ai/cli/latest.sh | bash
-  curl -fsSL ... | bash -s -- --prefix "$HOME/.local" --no-start
+  curl -fsSL ... | bash -s -- --no-start
   AUDETIC_CHANNEL=beta bash latest.sh --dry-run
 EOF
 }
@@ -93,17 +87,12 @@ require_cmd() {
 }
 
 require_sudo() {
-  command -v sudo >/dev/null 2>&1 || die "Need elevated privileges; install sudo or use --prefix within \$HOME"
+  command -v sudo >/dev/null 2>&1 || die "Need elevated privileges; install sudo"
 }
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --prefix)
-        INSTALL_PREFIX="$2"
-        BIN_DIR="$INSTALL_PREFIX/bin"
-        shift 2
-        ;;
       --channel)
         CHANNEL="$2"
         shift 2
@@ -111,14 +100,6 @@ parse_args() {
       --version)
         REQUESTED_VERSION="$2"
         shift 2
-        ;;
-      --system)
-        SYSTEM_MODE=true
-        shift
-        ;;
-      --user)
-        SYSTEM_MODE=false
-        shift
         ;;
       --no-start)
         NO_START=true
@@ -298,20 +279,12 @@ systemctl_available() {
 
 stop_service() {
   systemctl_available || return 0
-  if $SYSTEM_MODE; then
-    sudo systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
-  else
-    systemctl --user stop "$SERVICE_NAME" >/dev/null 2>&1 || true
-  fi
+  systemctl --user stop "$SERVICE_NAME" >/dev/null 2>&1 || true
 }
 
 disable_service() {
   systemctl_available || return 0
-  if $SYSTEM_MODE; then
-    sudo systemctl disable "$SERVICE_NAME" >/dev/null 2>&1 || true
-  else
-    systemctl --user disable "$SERVICE_NAME" >/dev/null 2>&1 || true
-  fi
+  systemctl --user disable "$SERVICE_NAME" >/dev/null 2>&1 || true
 }
 
 install_service_unit() {
@@ -323,49 +296,30 @@ install_service_unit() {
   if $NO_START; then
     log info "Service unit will be installed but not started (--no-start)."
   fi
-  if $SYSTEM_MODE; then
-    local target="/etc/systemd/system/$SERVICE_NAME"
-    install_with_permissions "$source" "$target" 0644
-    sudo systemctl daemon-reload
-    if ! $NO_START; then
-      sudo systemctl enable --now "$SERVICE_NAME"
-    else
-      sudo systemctl enable "$SERVICE_NAME"
-    fi
-    wait_for_service_start system
+
+  local systemd_user_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+  ensure_dir "$systemd_user_dir"
+  local target="$systemd_user_dir/$SERVICE_NAME"
+  install -m 0644 "$source" "$target"
+  systemctl --user daemon-reload
+  if ! $NO_START; then
+    systemctl --user enable --now "$SERVICE_NAME"
   else
-    local systemd_user_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-    ensure_dir "$systemd_user_dir"
-    local target="$systemd_user_dir/$SERVICE_NAME"
-    install -m 0644 "$source" "$target"
-    systemctl --user daemon-reload
-    if ! $NO_START; then
-      systemctl --user enable --now "$SERVICE_NAME"
-    else
-      systemctl --user enable "$SERVICE_NAME" >/dev/null 2>&1 || true
-    fi
-    wait_for_service_start user
+    systemctl --user enable "$SERVICE_NAME" >/dev/null 2>&1 || true
   fi
+  wait_for_service_start
 }
 
 wait_for_service_start() {
   $NO_START && return 0
   systemctl_available || return 0
-  local scope="$1"
   local max_attempts=15
   local attempt=0
   local -a is_active_cmd status_cmd journal_cmd
 
-  if [[ "$scope" == "system" ]]; then
-    require_sudo
-    is_active_cmd=(sudo systemctl is-active "$SERVICE_NAME")
-    status_cmd=(sudo systemctl status "$SERVICE_NAME" --no-pager)
-    journal_cmd=(sudo journalctl -u "$SERVICE_NAME" -n 40 --no-pager)
-  else
-    is_active_cmd=(systemctl --user is-active "$SERVICE_NAME")
-    status_cmd=(systemctl --user status "$SERVICE_NAME" --no-pager)
-    journal_cmd=(journalctl --user -u "$SERVICE_NAME" -n 40 --no-pager)
-  fi
+  is_active_cmd=(systemctl --user is-active "$SERVICE_NAME")
+  status_cmd=(systemctl --user status "$SERVICE_NAME" --no-pager)
+  journal_cmd=(journalctl --user -u "$SERVICE_NAME" -n 40 --no-pager)
 
   until "${is_active_cmd[@]}" >/dev/null 2>&1; do
     attempt=$((attempt + 1))
@@ -419,12 +373,7 @@ perform_uninstall() {
   stop_service || true
   disable_service || true
 
-  local service_target
-  if $SYSTEM_MODE; then
-    service_target="/etc/systemd/system/$SERVICE_NAME"
-  else
-    service_target="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SERVICE_NAME"
-  fi
+  local service_target="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SERVICE_NAME"
   remove_with_permissions "$service_target"
   remove_with_permissions "$BIN_DIR/audetic"
 
@@ -457,10 +406,9 @@ VERSION="$(fetch_version)"
 log title "Audetic installer"
 log info "Channel       : $CHANNEL"
 log info "Version       : $VERSION"
-log info "Install prefix: $INSTALL_PREFIX"
+log info "Binary path   : $BIN_DIR/audetic"
 log info "Target        : $TARGET_TRIPLE"
-mode_type=$([[ $SYSTEM_MODE == true ]] && echo system || echo user)
-log info "Mode          : $mode_type"
+log info "Service mode  : user"
 
 MANIFEST_PATH="$(download_manifest "$VERSION")"
 TARGET_METADATA="$(extract_target_metadata "$MANIFEST_PATH" "$TARGET_TRIPLE" || true)"
@@ -534,8 +482,7 @@ write_update_state "$VERSION"
 
 log success "Audetic $VERSION installed successfully"
 log info "Binary location: $BIN_DIR/audetic"
-service_mode=$([[ $SYSTEM_MODE == true ]] && echo system || echo user)
-log info "Service mode   : $service_mode"
+log info "Service mode   : user"
 
 if $NO_START; then
   log warn "Service start skipped (--no-start). Run 'systemctl --user start $SERVICE_NAME' when ready."
