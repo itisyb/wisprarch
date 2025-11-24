@@ -22,12 +22,9 @@ The installer:
 ### Useful flags
 
 ```
-latest.sh --prefix "$HOME/.local"   # install without sudo
-latest.sh --system                  # install as a system-level service
 latest.sh --channel beta            # jump to another release channel
-latest.sh --clean                   # remove previous binaries/services before reinstalling
+latest.sh --clean                   # remove previous binary/service before reinstalling
 latest.sh --dry-run                 # fetch & verify artifacts without touching the system
-latest.sh --uninstall [--clean]     # remove Audetic (optionally purge config/cache)
 ```
 
 After install:
@@ -381,12 +378,35 @@ curl -fsSL https://install.audetic.ai/cli/latest.sh | bash -s -- --channel beta 
 
 ## Uninstalling
 
-The installer doubles as the uninstaller:
+Remove Audetic with the dedicated uninstall script:
 
 ```bash
-curl -fsSL https://install.audetic.ai/cli/latest.sh | bash -s -- --uninstall
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash
 ```
 
-Add `--clean` if you also want to purge `~/.config/audetic` and caches under `~/.local/share/audetic`.
+### Uninstall options
 
-Manual teardown remains the same as before (stop the systemd service, delete the binary, remove config directories) if you prefer to handle it yourself.
+```bash
+# Preview what will be removed (no changes made)
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --dry-run
+
+# Skip confirmation prompt
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --yes
+
+# Keep your config and transcription history
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --keep-config --keep-database
+
+# Also remove temp audio files from /tmp
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --remove-temp
+```
+
+### What gets removed
+
+By default, the uninstaller removes:
+- `/usr/local/bin/audetic` (CLI binary)
+- `/usr/local/bin/audetic-*.bak` (backup binaries from auto-updates)
+- `~/.config/systemd/user/audetic.service` (systemd unit)
+- `~/.config/audetic/` (config and update state)
+- `~/.local/share/audetic/` (database and update cache)
+
+Use `--keep-config`, `--keep-database`, or `--keep-updates` to preserve specific artifacts.

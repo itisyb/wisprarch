@@ -43,6 +43,14 @@ Audetic includes an auto-updater plus manual controls:
 audetic update
 ```
 
+## Uninstall
+
+```bash
+curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash
+```
+
+Use `--dry-run` to preview, or `--keep-database` to preserve transcription history. See [Installation Guide](./docs/installation.md#uninstalling) for all options.
+
 ## License
 
 MIT

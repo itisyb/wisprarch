@@ -19,7 +19,6 @@ NO_START=false
 FORCE_REINSTALL=false
 CLEAN_INSTALL=false
 DRY_RUN=false
-UNINSTALL_ONLY=false
 MINISIGN_PUBKEY="${AUDETIC_MINISIGN_PUBKEY:-}"
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/audetic"
@@ -64,10 +63,12 @@ Options:
   --version <v>       Install a specific version
   --no-start          Do not enable/start the service after install
   --force-reinstall   Reinstall even if the version matches
-  --clean             Remove previous binaries/services before reinstall; with --uninstall also removes config/cache
+  --clean             Remove previous binary/service before reinstall
   --dry-run           Show what would happen without changing the system
-  --uninstall         Remove Audetic using the same options (combine with --clean to purge config/cache)
   --help              Show this message
+
+To uninstall Audetic, use:
+  curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash
 
 Environment overrides:
   AUDETIC_INSTALL_URL      Base URL for release artifacts (default: https://install.audetic.ai)
@@ -115,10 +116,6 @@ parse_args() {
         ;;
       --dry-run)
         DRY_RUN=true
-        shift
-        ;;
-      --uninstall)
-        UNINSTALL_ONLY=true
         shift
         ;;
       --help | -h)
@@ -368,34 +365,12 @@ install_config_template() {
   log success "Fetched default config to $config_path"
 }
 
-perform_uninstall() {
-  log title "Audetic uninstall"
-  stop_service || true
-  disable_service || true
-
-  local service_target="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$SERVICE_NAME"
-  remove_with_permissions "$service_target"
-  remove_with_permissions "$BIN_DIR/audetic"
-
-  if $CLEAN_INSTALL; then
-    rm -rf "$CONFIG_DIR" "$DATA_DIR"
-    log info "Removed config and data directories"
-  fi
-
-  log success "Audetic uninstalled"
-  exit 0
-}
-
 parse_args "$@"
 
 require_cmd curl
 require_cmd tar
 require_cmd python3
 require_cmd install
-
-if $UNINSTALL_ONLY; then
-  perform_uninstall
-fi
 
 TMP_ROOT="$(mktemp -d -t audetic-install.XXXXXX)"
 
