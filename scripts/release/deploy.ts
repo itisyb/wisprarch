@@ -289,9 +289,145 @@ async function ensureNotes(version: string) {
 	}
 	try {
 		await access(notesPath);
+		console.log(`==> Release notes already exist at ${notesPath}`);
 	} catch {
+		console.log(`==> Generating release notes for ${version}`);
+		await generateReleaseNotes(version, notesPath);
+	}
+}
+
+async function generateReleaseNotes(version: string, notesPath: string) {
+	// Find the previous version tag to get commit range
+	const previousVersion = await getPreviousVersion(version);
+
+	if (!previousVersion) {
+		console.warn(
+			"==> Could not find previous version, creating placeholder notes",
+		);
 		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
 		await Bun.write(notesPath, content);
+		return;
+	}
+
+	console.log(`==> Getting commits from ${previousVersion} to HEAD`);
+	const gitLog =
+		await $`git log --oneline --no-decorate ${previousVersion}..HEAD`.text();
+
+	if (!gitLog.trim()) {
+		console.warn("==> No commits found, creating placeholder notes");
+		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		await Bun.write(notesPath, content);
+		return;
+	}
+
+	// Check if opencode is available
+	if (!Bun.which("opencode")) {
+		console.warn("==> opencode CLI not found, creating placeholder notes");
+		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		await Bun.write(notesPath, content);
+		return;
+	}
+
+	// Create a detailed prompt for opencode
+	const prompt = `Generate concise release notes for version ${version} of Audetic, a Linux audio transcription daemon.
+
+Based on the following git commits:
+
+${gitLog}
+
+Please create release notes in markdown format following this structure:
+# Audetic ${version}
+
+Brief description of what's new or changed in this release (1-2 sentences).
+
+## Highlights
+- Key feature or improvement 1
+- Key feature or improvement 2
+- Key feature or improvement 3
+
+Only include highlights if there are significant changes. For minor releases, you can skip the Highlights section.
+
+Guidelines:
+- Be concise and user-focused
+- Avoid technical jargon where possible
+- Group related commits together
+- Skip internal/minor changes (like formatting, small refactors) unless they have user impact
+- Focus on what users will notice or benefit from
+- Use past tense (e.g., "Added support for...")
+- Don't include commit hashes
+- If there are breaking changes, call them out clearly
+
+Return ONLY the markdown content, no explanations or extra text.`;
+
+	try {
+		console.log("==> Calling opencode to generate release notes...");
+
+		// Call opencode run with the prompt
+		const result = await $`opencode run --format json ${prompt}`.text();
+
+		// Parse the JSON output to extract the generated content
+		const lines = result.trim().split("\n");
+		let generatedNotes = "";
+
+		for (const line of lines) {
+			try {
+				const event = JSON.parse(line);
+				// Look for text content in the events
+				if (event.type === "text" && event.text) {
+					generatedNotes += event.text;
+				}
+			} catch {
+				// Skip lines that aren't valid JSON
+				continue;
+			}
+		}
+
+		if (generatedNotes.trim()) {
+			console.log("==> Successfully generated release notes");
+			await Bun.write(notesPath, generatedNotes.trim() + "\n");
+		} else {
+			console.warn(
+				"==> opencode returned empty response, creating placeholder notes",
+			);
+			const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+			await Bun.write(notesPath, content);
+		}
+	} catch (error) {
+		console.error(
+			`==> Failed to generate release notes with opencode: ${error}`,
+		);
+		console.warn("==> Creating placeholder notes");
+		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		await Bun.write(notesPath, content);
+	}
+}
+
+async function getPreviousVersion(
+	currentVersion: string,
+): Promise<string | null> {
+	try {
+		// Get all tags sorted by version
+		const tags = await $`git tag --sort=-v:refname`.text();
+		const tagList = tags
+			.trim()
+			.split("\n")
+			.map((t) => t.trim())
+			.filter(Boolean);
+
+		// Find the current version tag (might not exist yet) or the most recent tag
+		const currentTag = `v${currentVersion}`;
+		const currentIndex = tagList.indexOf(currentTag);
+
+		if (currentIndex === -1) {
+			// Current version not tagged yet, return the most recent tag
+			return tagList[0] || null;
+		}
+
+		// Return the tag before current
+		return tagList[currentIndex + 1] || null;
+	} catch (error) {
+		console.error(`==> Failed to get previous version: ${error}`);
+		return null;
 	}
 }
 
