@@ -11,7 +11,7 @@ USE_CROSS ?= 0
 EXTRA_FEATURES ?=
 AUTO_COMMIT ?= 1
 
-.PHONY: help build release check test clean install uninstall run logs start restart stop status lint fmt fix deploy
+.PHONY: help build release check test clean install uninstall run logs start restart stop status lint fmt fix deploy deploy-beta deploy-stable
 
 # Default target
 help:
@@ -25,8 +25,6 @@ help:
 	@echo "  make fmt       - Check formatting"
 	@echo "  make fix       - Fix formatting and simple lint issues"
 	@echo ""
-	@echo "  make install   - Install Audetic (Arch Linux)"
-	@echo "  make uninstall - Uninstall Audetic"
 	@echo "  make run       - Run Audetic directly"
 	@echo "  make start     - Enable and start service"
 	@echo "  make logs      - Show service logs"
@@ -34,11 +32,13 @@ help:
 	@echo "  make stop      - Stop service"
 	@echo "  make status    - Check service status"
 	@echo ""
-	@echo "  make clean     - Clean build artifacts"
-	@echo "  make deploy    - Build/package/publish release artifacts (auto-bumps when VERSION unset;"
-	@echo "                   env: VERSION, VERSION_AUTO_BUMP=patch|minor|major|none, TARGETS, CHANNEL, DRY_RUN=1,"
-	@echo "                   SKIP_TESTS=1, SKIP_TAG=1, ALLOW_DIRTY=1, USE_CROSS=1, EXTRA_FEATURES, AUTO_COMMIT=0,"
-	@echo "                   CONTINUE_ON_ERROR=1)"
+	@echo "  make clean        - Clean build artifacts"
+	@echo "  make deploy       - Build/package/publish release artifacts (auto-bumps when VERSION unset;"
+	@echo "                      env: VERSION, VERSION_AUTO_BUMP=patch|minor|major|none, TARGETS, CHANNEL, DRY_RUN=1,"
+	@echo "                      SKIP_TESTS=1, SKIP_TAG=1, ALLOW_DIRTY=1, USE_CROSS=1, EXTRA_FEATURES, AUTO_COMMIT=0,"
+	@echo "                      CONTINUE_ON_ERROR=1)"
+	@echo "  make deploy-beta  - Deploy to beta channel (convenience for CHANNEL=beta)"
+	@echo "  make deploy-stable- Deploy to stable channel (convenience for CHANNEL=stable)"
 
 # Build commands
 build:
@@ -77,13 +77,15 @@ deploy:
 	 AUTO_COMMIT=$(AUTO_COMMIT) \
 	 bun ./scripts/release/deploy.ts
 
-# Installation and service management
-install:
-	./scripts/install.sh
+deploy-beta:
+	@echo "🚀 Deploying to beta channel..."
+	@$(MAKE) deploy CHANNEL=beta
 
-uninstall:
-	./scripts/uninstall.sh
+deploy-stable:
+	@echo "🚀 Deploying to stable channel..."
+	@$(MAKE) deploy CHANNEL=stable
 
+# Service management
 run:
 	RUST_LOG=info cargo run --release
 

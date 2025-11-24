@@ -1,6 +1,6 @@
 [package]
 name = "audetic"
-version = "0.1.13"
+version = "0.1.20"
 edition = "2021"
 authors = ["Mat Silva"]
 description = "Voice To Text Application for Wayland/Hyprland"
@@ -38,7 +38,7 @@ arboard = { version = "3.3", features = ["wayland-data-control"] }
 
 # CLI args
 clap = { version = "4.4", features = ["derive"] }
-dialoguer = "0.11"
+dialoguer = { version = "0.11", features = ["fuzzy-select"] }
 
 # Path handling
 dirs = "5.0"
@@ -61,3 +61,4 @@ flate2 = "1.0"
 tar = "0.4"
 walkdir = "2.5"
 fs2 = "0.4"
+rusqlite = "0.37.0"

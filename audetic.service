@@ -18,14 +18,12 @@ Environment="RUST_LOG=info"
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=%h/.config/audetic %t
+ReadWritePaths=%h/.config/audetic %h/.local/share/audetic %t
 # Whisper models require significant memory (3-5GB for larger models)
 MemoryMax=6G
 CPUQuota=80%
 # NOTE: systemd --user cannot add supplementary groups the user does not
 # already have, so we intentionally avoid SupplementaryGroups=audio here.
-# If you install the system service variant you can add that directive via
-# a drop-in configuration.
 
 [Install]
 WantedBy=default.target
