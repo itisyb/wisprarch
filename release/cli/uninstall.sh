@@ -291,7 +291,7 @@ confirm_uninstall() {
   fi
 
   echo -n "Proceed with uninstall? [y/N] "
-  read -r response
+  read -r response </dev/tty
   case "$response" in
     [yY] | [yY][eE][sS]) return 0 ;;
     *) return 1 ;;
