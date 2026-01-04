@@ -120,7 +120,9 @@ fn inject_module(content: &str) -> Result<String> {
         if !added_to_modules
             && (line.contains("\"modules-right\"") || line.contains("\"modules-center\""))
         {
+            // Find '[' and get the byte position right after it
             if let Some(bracket_pos) = line.find('[') {
+                // Safe: '[' is ASCII (1 byte), so bracket_pos + 1 is always a valid char boundary
                 let (before, after) = line.split_at(bracket_pos + 1);
                 *line = format!("{}\"custom/wisprarch\", {}", before, after.trim_start());
                 added_to_modules = true;
@@ -130,6 +132,7 @@ fn inject_module(content: &str) -> Result<String> {
 
     let mut result = lines.join("\n");
 
+    // Find last '}' - safe because '}' is ASCII and rfind returns byte position of ASCII char
     if let Some(last_brace) = result.rfind('}') {
         let before = &result[..last_brace];
         let before = before.trim_end();
@@ -156,23 +159,23 @@ fn remove_module(content: &str) -> String {
     if let Some(start) = result.find(start_marker) {
         let after_start = &result[start..];
         let mut brace_depth = 0;
-        let mut end_pos = 0;
+        let mut end_byte_pos = 0;
 
-        for (i, c) in after_start.chars().enumerate() {
+        for (byte_pos, c) in after_start.char_indices() {
             if c == '{' {
                 brace_depth += 1;
             } else if c == '}' {
                 brace_depth -= 1;
                 if brace_depth == 0 {
-                    end_pos = i + 1;
+                    end_byte_pos = byte_pos + c.len_utf8();
                     break;
                 }
             }
         }
 
-        if end_pos > 0 {
+        if end_byte_pos > 0 {
             let before = &result[..start];
-            let after = &result[start + end_pos..];
+            let after = &result[start + end_byte_pos..];
 
             let before = before.trim_end_matches(',').trim_end();
             let after = after.trim_start_matches(',');
