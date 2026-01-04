@@ -15,13 +15,14 @@ Fast speech-to-text for Arch Linux / Hyprland with Groq Cloud, Parakeet, and Whi
 Run the interactive installer:
 
 ```bash
-bunx create-wisprarch
+bunx github:itisyb/wisprarch/packages/create-wisprarch
 ```
 
-Or with npm:
+Or clone and run locally:
 
 ```bash
-npx create-wisprarch
+git clone https://github.com/itisyb/wisprarch && cd wisprarch
+cd packages/create-wisprarch && bun install && bun run dev
 ```
 
 The installer will guide you through:
@@ -46,7 +47,7 @@ sudo pacman -S wtype wl-clipboard
 ### Build from Source
 
 ```bash
-git clone https://github.com/wisprarch/wisprarch
+git clone https://github.com/itisyb/wisprarch
 cd wisprarch
 ./install.sh
 ```
