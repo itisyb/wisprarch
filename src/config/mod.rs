@@ -30,6 +30,14 @@ pub struct WhisperConfig {
 pub struct UiConfig {
     pub notification_color: String,
     pub waybar: WaybarConfig,
+    pub sounds: SoundsConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct SoundsConfig {
+    pub start_sound: Option<String>,
+    pub complete_sound: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,6 +88,7 @@ impl Default for UiConfig {
         Self {
             notification_color: "rgb(ff1744)".to_string(),
             waybar: WaybarConfig::default(),
+            sounds: SoundsConfig::default(),
         }
     }
 }
@@ -98,7 +107,7 @@ impl Default for WaybarConfig {
 impl Default for WaylandConfig {
     fn default() -> Self {
         Self {
-            input_method: "wtype".to_string(),
+            input_method: "clipboard".to_string(),
         }
     }
 }

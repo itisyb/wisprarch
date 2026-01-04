@@ -30,14 +30,19 @@ pub async fn run_service() -> Result<()> {
         Some(&config.wayland.input_method),
         config.behavior.preserve_clipboard,
     )?;
-    let indicator = Indicator::new().with_audio_feedback(config.behavior.audio_feedback);
+    let indicator = Indicator::new()
+        .with_audio_feedback(config.behavior.audio_feedback)
+        .with_custom_sounds(
+            config.ui.sounds.start_sound.clone(),
+            config.ui.sounds.complete_sound.clone(),
+        );
 
     let status_handle = RecordingStatusHandle::default();
     let recording_machine = RecordingMachine::new(
         audio_recorder.clone(),
         transcription_service,
         indicator,
-        text_io,
+        text_io.clone(),
         BehaviorOptions {
             auto_paste: config.behavior.auto_paste,
             delete_audio_files: config.behavior.delete_audio_files,
@@ -45,7 +50,7 @@ pub async fn run_service() -> Result<()> {
         status_handle.clone(),
     );
 
-    let api_server = ApiServer::new(tx, status_handle.clone(), &config);
+    let api_server = ApiServer::new(tx, status_handle.clone(), &config, text_io);
     tokio::spawn(async move {
         if let Err(e) = api_server.start().await {
             error!("API server failed: {}", e);

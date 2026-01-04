@@ -3,9 +3,11 @@
 //! Provides HTTP endpoints for:
 //! - Toggling recording (POST /toggle)
 //! - Getting recording status (GET /status)
+//! - Switching input method (POST /input-method, GET /input-method)
 
 use crate::audio::{JobOptions, RecordingPhase, RecordingStatus, RecordingStatusHandle};
 use crate::config::WaybarConfig;
+use crate::text_io::{InjectionMethod, TextIoService};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
@@ -41,13 +43,16 @@ pub struct RecordingState {
     pub tx: mpsc::Sender<ApiCommand>,
     pub status: RecordingStatusHandle,
     pub waybar_config: WaybarConfig,
+    pub text_io: TextIoService,
 }
 
-/// Creates the recording router with all recording-related endpoints.
 pub fn router(state: RecordingState) -> Router {
     Router::new()
         .route("/toggle", post(toggle_recording))
         .route("/status", get(recording_status))
+        .route("/input-method", get(get_input_method))
+        .route("/input-method", post(set_input_method))
+        .route("/input-method/cycle", post(cycle_input_method))
         .with_state(state)
 }
 
@@ -196,10 +201,66 @@ fn generate_waveform(level: f32) -> String {
     let mut waveform = String::from("󰍬 ");
     
     for i in 0..5 {
-        let phase = (i as f32 * 0.4 + variation * 6.28).sin() * 0.5 + 0.5;
+        let phase = (i as f32 * 0.4 + variation * std::f32::consts::TAU).sin() * 0.5 + 0.5;
         let idx = ((base_idx as f32 * 0.6 + phase * 3.0) as usize).min(7);
         waveform.push_str(bars[idx]);
     }
     
     waveform
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SetInputMethodRequest {
+    pub method: String,
+}
+
+async fn get_input_method(State(state): State<RecordingState>) -> Json<Value> {
+    let method = state.text_io.injection_method().await;
+    Json(json!({
+        "method": method.as_str(),
+        "available": get_available_methods()
+    }))
+}
+
+async fn set_input_method(
+    State(state): State<RecordingState>,
+    Json(req): Json<SetInputMethodRequest>,
+) -> Result<Json<Value>, (StatusCode, Json<Value>)> {
+    match InjectionMethod::parse(&req.method) {
+        Some(method) => {
+            state.text_io.set_injection_method(method).await;
+            info!("Input method changed to: {}", method.as_str());
+            Ok(Json(json!({
+                "method": method.as_str(),
+                "message": format!("Switched to {} mode", method.as_str())
+            })))
+        }
+        None => Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": format!("Invalid method '{}'. Use: clipboard, wtype, or ydotool", req.method),
+                "available": get_available_methods()
+            })),
+        )),
+    }
+}
+
+async fn cycle_input_method(State(state): State<RecordingState>) -> Json<Value> {
+    let new_method = state.text_io.cycle_injection_method().await;
+    info!("Input method cycled to: {}", new_method.as_str());
+    Json(json!({
+        "method": new_method.as_str(),
+        "message": format!("Switched to {} mode", new_method.as_str())
+    }))
+}
+
+fn get_available_methods() -> Vec<&'static str> {
+    let mut methods = vec!["clipboard"];
+    if which::which("wtype").is_ok() {
+        methods.push("wtype");
+    }
+    if which::which("ydotool").is_ok() {
+        methods.push("ydotool");
+    }
+    methods
 }

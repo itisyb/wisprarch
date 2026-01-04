@@ -3,7 +3,7 @@ use arboard::Clipboard;
 use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 use tracing::{debug, info, warn};
 use which::which;
 
@@ -15,7 +15,7 @@ pub struct TextIoService {
 struct TextIoInner {
     clipboard: Mutex<Option<Clipboard>>,
     preserve_previous: bool,
-    injection_method: InjectionMethod,
+    injection_method: RwLock<InjectionMethod>,
 }
 
 impl TextIoService {
@@ -36,13 +36,25 @@ impl TextIoService {
             inner: Arc::new(TextIoInner {
                 clipboard: Mutex::new(clipboard),
                 preserve_previous,
-                injection_method,
+                injection_method: RwLock::new(injection_method),
             }),
         })
     }
 
-    pub fn injection_method(&self) -> InjectionMethod {
-        self.inner.injection_method
+    pub async fn injection_method(&self) -> InjectionMethod {
+        *self.inner.injection_method.read().await
+    }
+
+    pub async fn set_injection_method(&self, method: InjectionMethod) {
+        info!("Switching injection method to {:?}", method);
+        *self.inner.injection_method.write().await = method;
+    }
+
+    pub async fn cycle_injection_method(&self) -> InjectionMethod {
+        let mut method = self.inner.injection_method.write().await;
+        *method = method.next_available();
+        info!("Cycled injection method to {:?}", *method);
+        *method
     }
 
     pub async fn copy_to_clipboard(&self, text: &str) -> Result<()> {
@@ -100,7 +112,8 @@ impl TextIoService {
         info!("Injecting text: {} chars", text.len());
         debug!("Text to inject: {}", text);
 
-        match self.inner.injection_method {
+        let method = *self.inner.injection_method.read().await;
+        match method {
             InjectionMethod::Wtype => {
                 self.try_with_clipboard_fallback(text, Self::inject_with_wtype)
                     .await
@@ -264,7 +277,7 @@ impl TextIoService {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InjectionMethod {
     Wtype,
     Ydotool,
@@ -272,9 +285,57 @@ pub enum InjectionMethod {
 }
 
 impl InjectionMethod {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            InjectionMethod::Wtype => "wtype",
+            InjectionMethod::Ydotool => "ydotool",
+            InjectionMethod::Clipboard => "clipboard",
+        }
+    }
+
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "wtype" => Some(InjectionMethod::Wtype),
+            "ydotool" => Some(InjectionMethod::Ydotool),
+            "clipboard" | "paste" => Some(InjectionMethod::Clipboard),
+            _ => None,
+        }
+    }
+
+    pub fn next_available(&self) -> Self {
+        let order = [
+            InjectionMethod::Clipboard,
+            InjectionMethod::Wtype,
+            InjectionMethod::Ydotool,
+        ];
+
+        let current_idx = order.iter().position(|m| m == self).unwrap_or(0);
+
+        for i in 1..=order.len() {
+            let next = order[(current_idx + i) % order.len()];
+            if next.is_available() {
+                return next;
+            }
+        }
+
+        InjectionMethod::Clipboard
+    }
+
+    fn is_available(&self) -> bool {
+        match self {
+            InjectionMethod::Clipboard => true,
+            InjectionMethod::Wtype => which("wtype").is_ok(),
+            InjectionMethod::Ydotool => which("ydotool").is_ok(),
+        }
+    }
+
     fn detect(preferred: Option<&str>) -> Self {
         if let Some(choice) = preferred {
             match choice {
+                "clipboard" | "paste" => {
+                    info!("Using clipboard-based injection (per config)");
+                    return InjectionMethod::Clipboard;
+                }
                 "ydotool" if which("ydotool").is_ok() => {
                     info!("Using ydotool for text injection (per config)");
                     return InjectionMethod::Ydotool;
@@ -292,14 +353,14 @@ impl InjectionMethod {
             }
         }
 
-        if which("ydotool").is_ok() {
-            info!("Using ydotool for text injection (auto-detected)");
-            return InjectionMethod::Ydotool;
-        }
-
         if std::env::var("WAYLAND_DISPLAY").is_ok() && which("wl-copy").is_ok() {
             info!("Using clipboard-based injection (Wayland detected)");
             return InjectionMethod::Clipboard;
+        }
+
+        if which("ydotool").is_ok() {
+            info!("Using ydotool for text injection (auto-detected)");
+            return InjectionMethod::Ydotool;
         }
 
         if which("wtype").is_ok() {

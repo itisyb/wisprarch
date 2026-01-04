@@ -32,7 +32,7 @@ impl App {
         list_state.select(Some(0));
 
         Self {
-            theme: Theme::catppuccin_mocha(),
+            theme: Theme::default(),
             registry: ModelRegistry::new(),
             selected_index: 0,
             list_state,

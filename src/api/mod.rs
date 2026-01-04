@@ -1,17 +1,8 @@
-//! REST API server for wisprarch.
-//!
-//! Provides HTTP endpoints for:
-//! - Recording control (toggle, status)
-//! - Transcription history
-//! - Keybinding management
-//! - Provider configuration
-//! - Update management
-//! - Application logs
-
 pub mod error;
 pub mod routes;
 
 use crate::config::Config;
+use crate::text_io::TextIoService;
 use anyhow::Result;
 use axum::{response::Json, routing::get, Router};
 use serde_json::{json, Value};
@@ -30,13 +21,15 @@ impl ApiServer {
         tx: tokio::sync::mpsc::Sender<ApiCommand>,
         status: crate::audio::RecordingStatusHandle,
         config: &Config,
+        text_io: TextIoService,
     ) -> Self {
         Self {
-            port: 3737, // WHSP in numbers
+            port: 3737,
             recording_state: RecordingState {
                 tx,
                 status,
                 waybar_config: config.ui.waybar.clone(),
+                text_io,
             },
         }
     }
@@ -64,6 +57,9 @@ impl ApiServer {
         info!("  POST /toggle        - Toggle recording");
         info!("  GET  /status        - Get recording status");
         info!("  GET  /version       - Get version info");
+        info!("  GET  /input-method  - Get current input method");
+        info!("  POST /input-method  - Set input method (clipboard/wtype/ydotool)");
+        info!("  POST /input-method/cycle - Cycle through available methods");
         info!("  GET  /history       - List transcription history");
         info!("  GET  /history/:id   - Get single transcription");
         info!("  GET  /keybind/status - Get keybinding status");
