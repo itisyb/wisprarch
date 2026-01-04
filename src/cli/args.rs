@@ -25,6 +25,8 @@ pub enum CliCommand {
     Logs(LogsCliArgs),
     /// Manage Hyprland keybindings for WisprArch
     Keybind(KeybindCliArgs),
+    /// Manage Waybar integration
+    Waybar(WaybarCliArgs),
     /// Launch the TUI for model management
     Tui,
     /// Manage speech-to-text models
@@ -162,5 +164,21 @@ pub enum KeybindCommand {
         dry_run: bool,
     },
     /// Show current keybinding status
+    Status,
+}
+
+#[derive(ClapArgs, Debug)]
+pub struct WaybarCliArgs {
+    #[command(subcommand)]
+    pub command: Option<WaybarCommand>,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum WaybarCommand {
+    /// Add WisprArch module to Waybar config
+    Install,
+    /// Remove WisprArch module from Waybar config
+    Uninstall,
+    /// Show Waybar integration status
     Status,
 }

@@ -7,7 +7,7 @@ use wisprarch::{
     app,
     cli::{
         handle_history_command, handle_keybind_command, handle_logs_command, handle_models_command,
-        handle_provider_command, handle_update_command, Cli, CliCommand,
+        handle_provider_command, handle_update_command, handle_waybar_command, Cli, CliCommand,
     },
 };
 
@@ -42,6 +42,10 @@ async fn main() -> Result<()> {
         }
         Some(CliCommand::Keybind(args)) => {
             handle_keybind_command(args)?;
+            return Ok(());
+        }
+        Some(CliCommand::Waybar(args)) => {
+            handle_waybar_command(args)?;
             return Ok(());
         }
         Some(CliCommand::Tui) => {
