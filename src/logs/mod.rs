@@ -48,7 +48,7 @@ pub fn get_app_logs(lines: usize) -> Result<Vec<String>> {
     let output = Command::new("journalctl")
         .arg("--user")
         .arg("-u")
-        .arg("audetic.service")
+        .arg("wisprarch.service")
         .arg("-n")
         .arg(lines.to_string())
         .arg("--output=short-iso")

@@ -34,7 +34,7 @@ impl BackupManager {
             .unwrap_or("config");
 
         let timestamp = Local::now().format("%Y%m%d-%H%M%S");
-        let backup_name = format!("{}.audetic-backup-{}", filename, timestamp);
+        let backup_name = format!("{}.wisprarch-backup-{}", filename, timestamp);
         let backup_path = self.backup_dir.join(&backup_name);
 
         debug!("Creating backup: {:?} -> {:?}", config_path, backup_path);
@@ -50,7 +50,7 @@ impl BackupManager {
 
     /// Rotate old backups, keeping only the most recent MAX_BACKUPS
     fn rotate_backups(&self, base_filename: &str) -> Result<()> {
-        let prefix = format!("{}.audetic-backup-", base_filename);
+        let prefix = format!("{}.wisprarch-backup-", base_filename);
 
         let mut backups: Vec<PathBuf> = fs::read_dir(&self.backup_dir)?
             .filter_map(|entry| entry.ok())
@@ -81,7 +81,7 @@ impl BackupManager {
 
     /// List all available backups for a config file
     pub fn list_backups(&self, base_filename: &str) -> Result<Vec<PathBuf>> {
-        let prefix = format!("{}.audetic-backup-", base_filename);
+        let prefix = format!("{}.wisprarch-backup-", base_filename);
 
         let mut backups: Vec<PathBuf> = fs::read_dir(&self.backup_dir)?
             .filter_map(|entry| entry.ok())
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_backup_creation() {
-        let temp_dir = std::env::temp_dir().join("audetic-test-backup");
+        let temp_dir = std::env::temp_dir().join("wisprarch-test-backup");
         let _ = fs::remove_dir_all(&temp_dir);
         fs::create_dir_all(&temp_dir).unwrap();
 

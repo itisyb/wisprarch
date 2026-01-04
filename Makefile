@@ -15,7 +15,7 @@ AUTO_COMMIT ?= 1
 
 # Default target
 help:
-	@echo "🦀 Audetic Development Commands"
+	@echo "🦀 wisprarch Development Commands"
 	@echo ""
 	@echo "  make build     - Build debug binary"
 	@echo "  make release   - Build optimized release binary"
@@ -25,7 +25,7 @@ help:
 	@echo "  make fmt       - Check formatting"
 	@echo "  make fix       - Fix formatting and simple lint issues"
 	@echo ""
-	@echo "  make run       - Run Audetic directly"
+	@echo "  make run       - Run wisprarch directly"
 	@echo "  make start     - Enable and start service"
 	@echo "  make logs      - Show service logs"
 	@echo "  make restart   - Restart service"
@@ -89,25 +89,25 @@ run:
 	RUST_LOG=info cargo run --release
 
 logs:
-	journalctl --user -u audetic.service -f
+	journalctl --user -u wisprarch.service -f
 
 start:
-	systemctl --user enable --now audetic.service
+	systemctl --user enable --now wisprarch.service
 	@echo "✓ Service enabled and started"
 
 restart:
-	systemctl --user restart audetic.service
+	systemctl --user restart wisprarch.service
 	@echo "✓ Service restarted"
 
 stop:
-	systemctl --user stop audetic.service
+	systemctl --user stop wisprarch.service
 	@echo "✓ Service stopped"
 
 status:
-	@systemctl --user is-active audetic.service >/dev/null 2>&1 && echo "✓ Service is running" || echo "✗ Service is not running"
+	@systemctl --user is-active wisprarch.service >/dev/null 2>&1 && echo "✓ Service is running" || echo "✗ Service is not running"
 	@curl -s http://127.0.0.1:3737/status 2>/dev/null | python3 -m json.tool || echo "✗ API not responding"
 
 # Cleanup
 clean:
 	cargo clean
-	rm -f /tmp/audetic_*.wav
+	rm -f /tmp/wisprarch_*.wav

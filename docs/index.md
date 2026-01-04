@@ -1,6 +1,6 @@
-# Audetic Documentation
+# wisprarch Documentation
 
-Welcome to the Audetic documentation. This directory contains detailed guides for configuring and using Audetic.
+Welcome to the wisprarch documentation. This directory contains detailed guides for configuring and using wisprarch.
 
 ## Available Documentation
 
@@ -8,22 +8,22 @@ Welcome to the Audetic documentation. This directory contains detailed guides fo
 
 - [Installation Guide](./installation.md) - Complete installation instructions for all platforms
 - [Text Injection Setup](./text-injection-setup.md) - Set up automatic text injection methods for different environments
-- [**Configuration Guide**](./configuration.md) - Complete configuration reference covering all Audetic settings including providers, audio, UI, and behavior
-- [Waybar Integration](./waybar-integration.md) - Add Audetic status indicators to your Waybar
+- [**Configuration Guide**](./configuration.md) - Complete configuration reference covering all wisprarch settings including providers, audio, UI, and behavior
+- [Waybar Integration](./waybar-integration.md) - Add wisprarch status indicators to your Waybar
 
 ### CLI Commands
 
-Audetic includes built-in commands for managing transcription providers and updates:
+wisprarch includes built-in commands for managing transcription providers and updates:
 
 ```bash
 # Provider management
-audetic provider show        # Show current provider configuration
-audetic provider configure   # Interactive provider setup wizard
-audetic provider test        # Validate provider without recording
+wisprarch provider show        # Show current provider configuration
+wisprarch provider configure   # Interactive provider setup wizard
+wisprarch provider test        # Validate provider without recording
 
 # Updates
-audetic update              # Check for and install updates
-audetic update --check      # Check version without installing
+wisprarch update              # Check for and install updates
+wisprarch update --check      # Check version without installing
 ```
 
 See the [Configuration Guide](./configuration.md#provider-cli-helpers) for detailed provider command documentation.
@@ -32,7 +32,7 @@ See the [Configuration Guide](./configuration.md#provider-cli-helpers) for detai
 
 - [**Adding Providers**](./adding-providers/README.md) - Step-by-step guide for adding new transcription providers
 
-Audetic includes a Makefile for common development tasks:
+wisprarch includes a Makefile for common development tasks:
 
 ```bash
 make help       # Show all available commands
@@ -55,4 +55,4 @@ make status     # Check service status
 ## Quick Links
 
 - [Main README](../README.md) - Project overview and quick start
-- [GitHub Repository](https://github.com/silvabyte/Audetic) - Source code and issue tracker
+- [GitHub Repository](https://github.com/silvabyte/wisprarch) - Source code and issue tracker

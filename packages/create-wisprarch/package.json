@@ -1,0 +1,37 @@
+{
+	"name": "create-wisprarch",
+	"version": "0.1.0",
+	"description": "Interactive installer for WisprArch - Speech-to-text for Arch Linux",
+	"type": "module",
+	"bin": {
+		"create-wisprarch": "./dist/index.js"
+	},
+	"scripts": {
+		"build": "bun build src/index.ts --outdir dist --target node",
+		"dev": "bun run src/index.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@clack/prompts": "^0.10.0",
+		"picocolors": "^1.1.1"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/node": "^22.15.21",
+		"typescript": "^5.8.3"
+	},
+	"keywords": [
+		"wisprarch",
+		"speech-to-text",
+		"whisper",
+		"arch-linux",
+		"hyprland",
+		"transcription"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wisprarch/wisprarch"
+	}
+}

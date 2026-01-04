@@ -1,0 +1,24 @@
+[Unit]
+Description=WisprArch Speech-to-Text Service
+Documentation=https://github.com/wisprarch/wisprarch
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/wisprarch
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+Environment="RUST_LOG=info"
+
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.config/wisprarch %h/.local/share/wisprarch %t
+MemoryMax=6G
+CPUQuota=80%
+
+[Install]
+WantedBy=default.target

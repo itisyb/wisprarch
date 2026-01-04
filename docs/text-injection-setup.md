@@ -1,10 +1,10 @@
 # Text Injection Setup Guide
 
-Audetic supports multiple methods for automatically injecting transcribed text into your applications. This guide explains the available methods and how to set them up on different Linux distributions and desktop environments.
+wisprarch supports multiple methods for automatically injecting transcribed text into your applications. This guide explains the available methods and how to set them up on different Linux distributions and desktop environments.
 
 ## Automatic Method Selection
 
-Audetic automatically detects the best available text injection method based on:
+wisprarch automatically detects the best available text injection method based on:
 
 1. **User preference** (if specified in config)
 2. **Available tools** on your system
@@ -17,7 +17,7 @@ The detection priority is:
 - **wtype** (works on Sway, Hyprland, but not KDE/GNOME)
 - Final fallback to clipboard-only mode
 
-**Enhanced Fallback System:** If direct text injection fails (ydotool/wtype), Audetic automatically falls back to clipboard + paste simulation, ensuring text delivery even in restricted environments.
+**Enhanced Fallback System:** If direct text injection fails (ydotool/wtype), wisprarch automatically falls back to clipboard + paste simulation, ensuring text delivery even in restricted environments.
 
 ## Supported Methods
 
@@ -56,7 +56,7 @@ input_method = "ydotool"
 
 **Best for**: Sway and some other Wayland compositors
 
-**Note**: Does NOT work reliably with KDE Plasma or GNOME due to security restrictions. Audetic will automatically fall back to clipboard paste if wtype fails.
+**Note**: Does NOT work reliably with KDE Plasma or GNOME due to security restrictions. wisprarch will automatically fall back to clipboard paste if wtype fails.
 
 **Installation**:
 ```bash
@@ -102,7 +102,7 @@ sudo apt install xclip xsel     # Ubuntu/Debian
 3. Simulates Ctrl+V keypress to paste using available tools (ydotool, wtype, or xdotool)
 4. If paste simulation fails, text remains in clipboard for manual paste
 
-**Note**: Audetic automatically falls back to this method if direct text injection (ydotool/wtype) fails.
+**Note**: wisprarch automatically falls back to this method if direct text injection (ydotool/wtype) fails.
 
 ## Distribution-Specific Notes
 
@@ -131,7 +131,7 @@ sudo apt install xclip xsel     # Ubuntu/Debian
 | Clipboard | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Auto-fallback | ✅ Good |
 | xdotool | ❌ N/A | ❌ N/A | ❌ N/A | ❌ N/A | ✅ Good |
 
-**Note:** Audetic automatically falls back to clipboard + paste when direct injection methods fail. "Auto-fallback" indicates methods that transparently switch if the primary method doesn't work.
+**Note:** wisprarch automatically falls back to clipboard + paste when direct injection methods fail. "Auto-fallback" indicates methods that transparently switch if the primary method doesn't work.
 
 ## Troubleshooting
 
@@ -235,9 +235,9 @@ echo "Hello World" | wl-copy && wtype -M ctrl -P v -m ctrl -p v
 echo "Hello World" | wl-copy && wl-paste
 ```
 
-Run Audetic with verbose logging:
+Run wisprarch with verbose logging:
 ```bash
-./audetic --verbose
+./wisprarch --verbose
 ```
 
 This will show which text injection method was selected and any errors encountered.

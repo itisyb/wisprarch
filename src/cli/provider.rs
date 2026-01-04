@@ -34,14 +34,14 @@ pub fn handle_provider_command(args: ProviderCliArgs) -> Result<()> {
 /// Interactive provider setup wizard (default when no subcommand provided)
 fn handle_interactive() -> Result<()> {
     if !io::stdin().is_terminal() {
-        info!("Non-interactive session. Use 'audetic provider configure' for automated setup.");
+        info!("Non-interactive session. Use 'wisprarch provider configure' for automated setup.");
         return Ok(());
     }
 
     let theme = ColorfulTheme::default();
 
     println!();
-    println!("Audetic Provider Setup");
+    println!("wisprarch Provider Setup");
     println!("======================");
     println!();
 
@@ -119,7 +119,7 @@ fn handle_show() -> Result<()> {
 /// Configure provider with optional dry-run
 fn handle_configure(dry_run: bool) -> Result<()> {
     if !io::stdin().is_terminal() {
-        info!("Non-interactive session detected. Please edit ~/.config/audetic/config.toml manually to change providers.");
+        info!("Non-interactive session detected. Please edit ~/.config/wisprarch/config.toml manually to change providers.");
         return Ok(());
     }
 
@@ -141,8 +141,9 @@ fn handle_configure(dry_run: bool) -> Result<()> {
     config.whisper.provider = Some(selection.as_str().to_string());
 
     match selection {
-        ProviderSelection::AudeticApi => configure_audetic_api(&theme, &mut config.whisper)?,
-        ProviderSelection::AssemblyAi => configure_assembly_ai(&theme, &mut config.whisper)?,
+        ProviderSelection::Groq => configure_groq(&theme, &mut config.whisper)?,
+        ProviderSelection::ParakeetV3 => configure_parakeet(&theme, &mut config.whisper, "v3")?,
+        ProviderSelection::ParakeetV2 => configure_parakeet(&theme, &mut config.whisper, "v2")?,
         ProviderSelection::OpenAiApi => configure_openai_api(&theme, &mut config.whisper)?,
         ProviderSelection::OpenAiCli => configure_openai_cli(&theme, &mut config.whisper)?,
         ProviderSelection::WhisperCpp => configure_whisper_cpp(&theme, &mut config.whisper)?,
@@ -188,8 +189,8 @@ fn handle_configure(dry_run: bool) -> Result<()> {
     );
     println!();
     println!("Next steps:");
-    println!("  audetic provider test    - Verify the provider works");
-    println!("  systemctl --user restart audetic.service  - Apply to running service");
+    println!("  wisprarch provider test    - Verify the provider works");
+    println!("  systemctl --user restart wisprarch.service  - Apply to running service");
 
     Ok(())
 }
@@ -198,7 +199,7 @@ fn handle_configure(dry_run: bool) -> Result<()> {
 fn handle_test(file: Option<String>) -> Result<()> {
     let config = Config::load()?;
     let provider_name = config.whisper.provider.as_deref().ok_or_else(|| {
-        anyhow!("No transcription provider configured. Run `audetic provider configure` first.")
+        anyhow!("No transcription provider configured. Run `wisprarch provider configure` first.")
     })?;
 
     println!();
@@ -241,9 +242,9 @@ fn handle_test(file: Option<String>) -> Result<()> {
         println!("Provider '{}' initialized successfully.", provider_name);
         println!();
         println!("To test with actual audio:");
-        println!("  audetic provider test --file <audio.wav>");
+        println!("  wisprarch provider test --file <audio.wav>");
         println!();
-        println!("Or use Audetic normally to test recording and transcription.");
+        println!("Or use wisprarch normally to test recording and transcription.");
     }
 
     Ok(())
@@ -256,7 +257,7 @@ fn handle_status() -> Result<()> {
     let status = get_provider_status_from_config(whisper)?;
 
     println!();
-    println!("Audetic Provider Status");
+    println!("wisprarch Provider Status");
     println!("=======================");
     println!();
 
@@ -274,7 +275,7 @@ fn handle_status() -> Result<()> {
 
             // Show provider-specific config
             match provider.as_str() {
-                "audetic-api" => {
+                "wisprarch-api" => {
                     println!(
                         "Endpoint:  {}",
                         whisper.api_endpoint.as_deref().unwrap_or("<default>")
@@ -314,14 +315,14 @@ fn handle_status() -> Result<()> {
             println!();
             println!("Error: {}", error);
             println!();
-            println!("Run 'audetic provider configure' to fix the configuration.");
+            println!("Run 'wisprarch provider configure' to fix the configuration.");
         }
         ProviderStatus::NotConfigured => {
             println!("Status: NOT CONFIGURED");
             println!();
             println!("No transcription provider has been set up.");
             println!();
-            println!("Run 'audetic provider' to configure a provider.");
+            println!("Run 'wisprarch provider' to configure a provider.");
         }
     }
 
@@ -340,7 +341,7 @@ fn handle_reset(force: bool) -> Result<()> {
     println!("Current provider: {}", current_provider);
     println!();
     println!("This will reset to:");
-    println!("  Provider: audetic-api (default)");
+    println!("  Provider: wisprarch-api (default)");
     println!("  Model:    base");
     println!("  Language: en");
     println!("  All API keys and custom paths will be cleared.");
@@ -380,8 +381,8 @@ fn handle_reset(force: bool) -> Result<()> {
     println!("Provider configuration reset to defaults.");
     println!();
     println!("Next steps:");
-    println!("  audetic provider           - Configure a new provider");
-    println!("  systemctl --user restart audetic.service  - Apply changes");
+    println!("  wisprarch provider           - Configure a new provider");
+    println!("  systemctl --user restart wisprarch.service  - Apply changes");
 
     Ok(())
 }
@@ -480,25 +481,24 @@ fn print_secret_diff(name: &str, old: &Option<String>, new: &Option<String>) {
 // Provider configuration wizards
 // ============================================================================
 
-fn configure_audetic_api(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> Result<()> {
+fn configure_groq(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> Result<()> {
     whisper.command_path = None;
     whisper.model_path = None;
-    whisper.api_key = None;
+    whisper.api_endpoint = None;
 
-    let endpoint_default = whisper
-        .api_endpoint
+    println!("Get your free API key at: https://console.groq.com/keys");
+    println!();
+
+    let api_key = prompt_secret(theme, "Groq API key (gsk_...)", whisper.api_key.as_ref())?;
+    whisper.api_key = Some(api_key);
+
+    let model_default = whisper
+        .model
         .clone()
-        .unwrap_or_else(|| "https://audio.audetic.link/api/v1/transcriptions".to_string());
-    whisper.api_endpoint = Some(prompt_string_with_default(
-        theme,
-        "API endpoint",
-        &endpoint_default,
-    )?);
-
-    let model_default = whisper.model.clone().unwrap_or_else(|| "base".to_string());
+        .unwrap_or_else(|| "whisper-large-v3-turbo".to_string());
     whisper.model = Some(prompt_string_with_default(
         theme,
-        "Model (base, small, medium, large-v3, ...)",
+        "Model (whisper-large-v3-turbo or whisper-large-v3)",
         &model_default,
     )?);
 
@@ -507,25 +507,27 @@ fn configure_audetic_api(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> 
     Ok(())
 }
 
-fn configure_assembly_ai(theme: &ColorfulTheme, whisper: &mut WhisperConfig) -> Result<()> {
+fn configure_parakeet(
+    theme: &ColorfulTheme,
+    whisper: &mut WhisperConfig,
+    version: &str,
+) -> Result<()> {
     whisper.command_path = None;
-    whisper.model_path = None;
+    whisper.api_endpoint = None;
+    whisper.api_key = None;
 
-    let api_key = prompt_secret(theme, "AssemblyAI API key", whisper.api_key.as_ref())?;
-    whisper.api_key = Some(api_key);
+    let model_id = format!("parakeet-{}", version);
+    whisper.model = Some(model_id.clone());
 
-    let endpoint_default = whisper
-        .api_endpoint
-        .clone()
-        .unwrap_or_else(|| "https://api.assemblyai.com/v2".to_string());
-    whisper.api_endpoint = Some(prompt_string_with_default(
-        theme,
-        "API base URL",
-        &endpoint_default,
-    )?);
-
-    // AssemblyAI doesn't use a model parameter like OpenAI
-    whisper.model = None;
+    println!(
+        "Parakeet {} uses local ONNX models.",
+        version.to_uppercase()
+    );
+    println!(
+        "Download models with: wisprarch models download {}",
+        model_id
+    );
+    println!();
 
     prompt_language_choice(theme, whisper, "en")?;
 
@@ -633,20 +635,12 @@ fn prompt_provider_selection(
     current: Option<&str>,
 ) -> Result<ProviderSelection> {
     const OPTIONS: &[(&str, &str)] = &[
-        (
-            "audetic-api",
-            "Audetic Cloud API (default, no setup required)",
-        ),
-        ("assembly-ai", "AssemblyAI API (requires API key)"),
+        ("groq", "Groq Cloud (fastest, free tier available)"),
+        ("parakeet-v3", "Parakeet v3 Local (multilingual, 25 langs)"),
+        ("parakeet-v2", "Parakeet v2 Local (English only, fastest)"),
         ("openai-api", "OpenAI Whisper API (requires API key)"),
-        (
-            "openai-cli",
-            "Local OpenAI Whisper CLI (requires local install)",
-        ),
-        (
-            "whisper-cpp",
-            "Local whisper.cpp binary (requires local install)",
-        ),
+        ("openai-cli", "Local OpenAI Whisper CLI (requires install)"),
+        ("whisper-cpp", "Local whisper.cpp (requires install)"),
     ];
 
     let items: Vec<String> = OPTIONS
@@ -827,8 +821,9 @@ fn mask_secret(value: &Option<String>) -> String {
 
 #[derive(Debug, Clone, Copy)]
 enum ProviderSelection {
-    AudeticApi,
-    AssemblyAi,
+    Groq,
+    ParakeetV3,
+    ParakeetV2,
     OpenAiApi,
     OpenAiCli,
     WhisperCpp,
@@ -837,8 +832,9 @@ enum ProviderSelection {
 impl ProviderSelection {
     fn as_str(&self) -> &'static str {
         match self {
-            ProviderSelection::AudeticApi => "audetic-api",
-            ProviderSelection::AssemblyAi => "assembly-ai",
+            ProviderSelection::Groq => "groq",
+            ProviderSelection::ParakeetV3 => "parakeet-v3",
+            ProviderSelection::ParakeetV2 => "parakeet-v2",
             ProviderSelection::OpenAiApi => "openai-api",
             ProviderSelection::OpenAiCli => "openai-cli",
             ProviderSelection::WhisperCpp => "whisper-cpp",
@@ -847,10 +843,11 @@ impl ProviderSelection {
 
     fn from_index(index: usize) -> Self {
         match index {
-            0 => ProviderSelection::AudeticApi,
-            1 => ProviderSelection::AssemblyAi,
-            2 => ProviderSelection::OpenAiApi,
-            3 => ProviderSelection::OpenAiCli,
+            0 => ProviderSelection::Groq,
+            1 => ProviderSelection::ParakeetV3,
+            2 => ProviderSelection::ParakeetV2,
+            3 => ProviderSelection::OpenAiApi,
+            4 => ProviderSelection::OpenAiCli,
             _ => ProviderSelection::WhisperCpp,
         }
     }
@@ -863,7 +860,7 @@ mod tests {
     #[test]
     fn test_provider_status_display() {
         let status = ProviderStatus::Ready {
-            provider: "audetic-api".to_string(),
+            provider: "wisprarch-api".to_string(),
             model: Some("base".to_string()),
             language: Some("en".to_string()),
         };
@@ -888,7 +885,7 @@ mod tests {
     fn test_get_provider_status() {
         let mut whisper = WhisperConfig::default();
 
-        // Default has audetic-api which needs no extra config
+        // Default has wisprarch-api which needs no extra config
         let status = get_provider_status_from_config(&whisper).unwrap();
         assert!(matches!(status, ProviderStatus::Ready { .. }));
 

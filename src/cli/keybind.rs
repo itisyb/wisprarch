@@ -6,9 +6,9 @@
 use crate::cli::{KeybindCliArgs, KeybindCommand};
 use crate::keybind::discovery::get_all_config_files;
 use crate::keybind::{
-    self, check_conflicts, discover_config, find_audetic_bindings, parse_bindings, write_binding,
-    BackupManager, KeybindStatus, Modifiers, ProposedBinding, AUDETIC_SECTION_MARKER, DEFAULT_KEY,
-    FALLBACK_MODIFIERS,
+    self, check_conflicts, discover_config, find_wisprarch_bindings, parse_bindings, write_binding,
+    BackupManager, KeybindStatus, Modifiers, ProposedBinding, DEFAULT_KEY, FALLBACK_MODIFIERS,
+    WISPRARCH_SECTION_MARKER,
 };
 use anyhow::{anyhow, Result};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
@@ -27,14 +27,14 @@ pub fn handle_keybind_command(args: KeybindCliArgs) -> Result<()> {
 /// Interactive keybinding setup wizard
 fn handle_interactive() -> Result<()> {
     if !io::stdin().is_terminal() {
-        info!("Non-interactive session. Use 'audetic keybind install' for automated setup.");
+        info!("Non-interactive session. Use 'wisprarch keybind install' for automated setup.");
         return Ok(());
     }
 
     let theme = ColorfulTheme::default();
 
     println!();
-    println!("Audetic Keybinding Setup");
+    println!("wisprarch Keybinding Setup");
     println!("========================");
     println!();
 
@@ -57,10 +57,10 @@ fn handle_interactive() -> Result<()> {
         all_bindings.extend(parse_bindings(file));
     }
 
-    // Check for existing Audetic bindings
-    let existing = find_audetic_bindings(&all_bindings);
+    // Check for existing wisprarch bindings
+    let existing = find_wisprarch_bindings(&all_bindings);
     if !existing.is_empty() {
-        println!("Existing Audetic keybinding found:");
+        println!("Existing wisprarch keybinding found:");
         for binding in &existing {
             println!("  {} -> {}", binding.display_key(), binding.command);
             println!(
@@ -86,7 +86,7 @@ fn handle_interactive() -> Result<()> {
     let mut proposed = ProposedBinding::default();
 
     println!("Proposed keybinding:");
-    println!("  {} -> Toggle Audetic recording", proposed.display_key());
+    println!("  {} -> Toggle wisprarch recording", proposed.display_key());
     println!();
 
     // Check for conflicts
@@ -171,7 +171,7 @@ fn handle_interactive() -> Result<()> {
     // Final confirmation with preview
     println!();
     println!("Will add to {}:", config_path.display());
-    println!("  {}", AUDETIC_SECTION_MARKER);
+    println!("  {}", WISPRARCH_SECTION_MARKER);
     println!("  {}", proposed.to_hyprland_line());
     println!();
 
@@ -217,7 +217,7 @@ fn handle_install(key: Option<String>, dry_run: bool) -> Result<()> {
         };
 
         println!("Dry run - would add to {}:", config_path.display());
-        println!("  {}", AUDETIC_SECTION_MARKER);
+        println!("  {}", WISPRARCH_SECTION_MARKER);
         println!("  {}", proposed.to_hyprland_line());
         return Ok(());
     }
@@ -245,7 +245,7 @@ fn handle_uninstall(dry_run: bool) -> Result<()> {
             .ok_or_else(|| anyhow!("No Hyprland configuration found"))?;
 
         println!(
-            "Dry run - would remove Audetic keybinding from {}",
+            "Dry run - would remove wisprarch keybinding from {}",
             config_path.display()
         );
         return Ok(());
@@ -258,13 +258,13 @@ fn handle_uninstall(dry_run: bool) -> Result<()> {
             }
             if result.removed {
                 println!(
-                    "Removed Audetic keybinding from {}",
+                    "Removed wisprarch keybinding from {}",
                     result.config_path.display()
                 );
                 println!("Run 'hyprctl reload' to apply changes.");
             } else {
                 println!(
-                    "No Audetic keybinding found in {}",
+                    "No wisprarch keybinding found in {}",
                     result.config_path.display()
                 );
             }
@@ -282,7 +282,7 @@ fn handle_status() -> Result<()> {
     let status = keybind::get_status()?;
 
     println!();
-    println!("Audetic Keybinding Status");
+    println!("wisprarch Keybinding Status");
     println!("=========================");
     println!();
 
@@ -310,7 +310,7 @@ fn handle_status() -> Result<()> {
             if let Some(path) = config_path {
                 println!("Config file: {}", path.display());
                 println!();
-                println!("Run 'audetic keybind' to install.");
+                println!("Run 'wisprarch keybind' to install.");
             } else {
                 println!("No Hyprland config found.");
             }

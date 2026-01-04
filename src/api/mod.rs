@@ -1,4 +1,4 @@
-//! REST API server for Audetic.
+//! REST API server for wisprarch.
 //!
 //! Provides HTTP endpoints for:
 //! - Recording control (toggle, status)
@@ -84,7 +84,7 @@ impl ApiServer {
 
 async fn status() -> Json<Value> {
     Json(json!({
-        "service": "audetic",
+        "service": "wisprarch",
         "version": env!("CARGO_PKG_VERSION"),
         "status": "running"
     }))
@@ -93,6 +93,6 @@ async fn status() -> Json<Value> {
 async fn version() -> Json<Value> {
     Json(json!({
         "version": env!("CARGO_PKG_VERSION"),
-        "name": "audetic"
+        "name": "wisprarch"
     }))
 }

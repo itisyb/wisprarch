@@ -1,8 +1,8 @@
 use clap::{Args as ClapArgs, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[command(name = "audetic")]
-#[command(about = "Voice to text for Hyprland", long_about = None)]
+#[command(name = "wisprarch")]
+#[command(about = "Fast speech-to-text for Arch Linux / Hyprland", long_about = None)]
 pub struct Cli {
     #[arg(short, long, global = true)]
     pub verbose: bool,
@@ -23,8 +23,12 @@ pub enum CliCommand {
     History(HistoryCliArgs),
     /// View application and transcription logs
     Logs(LogsCliArgs),
-    /// Manage Hyprland keybindings for Audetic
+    /// Manage Hyprland keybindings for WisprArch
     Keybind(KeybindCliArgs),
+    /// Launch the TUI for model management
+    Tui,
+    /// Manage speech-to-text models
+    Models(ModelsCliArgs),
 }
 
 #[derive(ClapArgs, Debug)]
@@ -110,9 +114,39 @@ pub struct KeybindCliArgs {
     pub command: Option<KeybindCommand>,
 }
 
+#[derive(ClapArgs, Debug)]
+pub struct ModelsCliArgs {
+    #[command(subcommand)]
+    pub command: Option<ModelsCommand>,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ModelsCommand {
+    /// List available models and their status
+    List,
+    /// Download a model
+    Download {
+        /// Model ID (e.g., parakeet-v3, parakeet-v2, whisper-large-v3)
+        model_id: String,
+    },
+    /// Delete a downloaded model
+    Delete {
+        /// Model ID to delete
+        model_id: String,
+        /// Skip confirmation prompt
+        #[arg(long)]
+        force: bool,
+    },
+    /// Show detailed info about a model
+    Info {
+        /// Model ID
+        model_id: String,
+    },
+}
+
 #[derive(Subcommand, Debug)]
 pub enum KeybindCommand {
-    /// Install Audetic keybinding (default: SUPER+R)
+    /// Install WisprArch keybinding (default: SUPER+R)
     Install {
         /// Custom keybinding (e.g., "SUPER SHIFT, R" or "SUPER+T")
         #[arg(short, long)]
@@ -121,7 +155,7 @@ pub enum KeybindCommand {
         #[arg(long)]
         dry_run: bool,
     },
-    /// Remove Audetic keybinding from config
+    /// Remove WisprArch keybinding from config
     Uninstall {
         /// Preview changes without applying
         #[arg(long)]

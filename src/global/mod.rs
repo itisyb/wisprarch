@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use std::path::PathBuf;
 
-const APP_DIR: &str = "audetic";
+const APP_DIR: &str = "wisprarch";
 
 pub fn config_dir() -> Result<PathBuf> {
     dirs::config_dir()
@@ -36,5 +36,9 @@ pub fn update_lock_file() -> Result<PathBuf> {
 }
 
 pub fn db_file() -> Result<PathBuf> {
-    Ok(data_dir()?.join("audetic.db"))
+    Ok(data_dir()?.join("wisprarch.db"))
+}
+
+pub fn models_dir() -> Result<PathBuf> {
+    Ok(data_dir()?.join("models"))
 }

@@ -1,15 +1,15 @@
 #![allow(clippy::arc_with_non_send_sync)]
 
 use anyhow::Result;
-use audetic::{
+use clap::Parser;
+use tracing_subscriber::EnvFilter;
+use wisprarch::{
     app,
     cli::{
-        handle_history_command, handle_keybind_command, handle_logs_command,
+        handle_history_command, handle_keybind_command, handle_logs_command, handle_models_command,
         handle_provider_command, handle_update_command, Cli, CliCommand,
     },
 };
-use clap::Parser;
-use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Some(CliCommand::Version) => {
-            println!("Audetic {}", env!("CARGO_PKG_VERSION"));
+            println!("WisprArch {}", env!("CARGO_PKG_VERSION"));
             return Ok(());
         }
         Some(CliCommand::Update(args)) => {
@@ -42,6 +42,14 @@ async fn main() -> Result<()> {
         }
         Some(CliCommand::Keybind(args)) => {
             handle_keybind_command(args)?;
+            return Ok(());
+        }
+        Some(CliCommand::Tui) => {
+            wisprarch::tui::run_tui()?;
+            return Ok(());
+        }
+        Some(CliCommand::Models(args)) => {
+            handle_models_command(args).await?;
             return Ok(());
         }
         None => {}

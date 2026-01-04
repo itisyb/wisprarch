@@ -18,9 +18,9 @@ use tokio::task::JoinHandle;
 use tracing::{debug, info, warn};
 use walkdir::WalkDir;
 
-const DEFAULT_BASE_URL: &str = "https://install.audetic.ai";
+const DEFAULT_BASE_URL: &str = "https://install.wisprarch.ai";
 const DEFAULT_CHANNEL: &str = "stable";
-const BIN_NAME: &str = "audetic";
+const BIN_NAME: &str = "wisprarch";
 const UPDATE_INTERVAL_HOURS: u64 = 1;
 
 #[derive(Clone)]
@@ -40,21 +40,21 @@ pub struct UpdateConfig {
 impl UpdateConfig {
     pub fn detect(channel_override: Option<String>) -> Result<Self> {
         let base_url =
-            std::env::var("AUDETIC_INSTALL_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.to_string());
+            std::env::var("WISPRARCH_INSTALL_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.to_string());
         let channel = channel_override
-            .or_else(|| std::env::var("AUDETIC_CHANNEL").ok())
+            .or_else(|| std::env::var("WISPRARCH_CHANNEL").ok())
             .unwrap_or_else(|| DEFAULT_CHANNEL.to_string());
         let binary_path =
             std::env::current_exe().context("Failed to resolve current executable")?;
         let updates_dir = global::updates_dir()?;
         let state_file = global::update_state_file()?;
         let lock_file = global::update_lock_file()?;
-        let interval = std::env::var("AUDETIC_UPDATE_INTERVAL_SECS")
+        let interval = std::env::var("WISPRARCH_UPDATE_INTERVAL_SECS")
             .ok()
             .and_then(|raw| raw.parse::<u64>().ok())
             .map(Duration::from_secs)
             .unwrap_or_else(|| Duration::from_secs(UPDATE_INTERVAL_HOURS * 3600));
-        let restart_on_success = std::env::var("AUDETIC_DISABLE_AUTO_RESTART").is_err();
+        let restart_on_success = std::env::var("WISPRARCH_DISABLE_AUTO_RESTART").is_err();
         let target_id = default_target_id().map(|s| s.to_string());
         Ok(Self {
             base_url,
@@ -95,11 +95,11 @@ impl UpdateEngine {
     }
 
     pub fn spawn_background(self, channel_override: Option<String>) -> Option<JoinHandle<()>> {
-        if std::env::var("AUDETIC_DISABLE_AUTO_UPDATE")
+        if std::env::var("WISPRARCH_DISABLE_AUTO_UPDATE")
             .map(|raw| raw == "1" || raw.eq_ignore_ascii_case("true"))
             .unwrap_or(false)
         {
-            info!("Auto-update disabled via AUDETIC_DISABLE_AUTO_UPDATE");
+            info!("Auto-update disabled via WISPRARCH_DISABLE_AUTO_UPDATE");
             return None;
         }
 
@@ -164,7 +164,7 @@ impl UpdateEngine {
         let _lock = self.acquire_lock().await?;
         let mut state = self.load_state().await?;
         state.channel = channel.to_string();
-        let auto_update_env_disabled = std::env::var("AUDETIC_DISABLE_AUTO_UPDATE")
+        let auto_update_env_disabled = std::env::var("WISPRARCH_DISABLE_AUTO_UPDATE")
             .map(|raw| raw == "1" || raw.eq_ignore_ascii_case("true"))
             .unwrap_or(false);
 
@@ -410,7 +410,7 @@ impl UpdateEngine {
             Err(err) if is_permission_denied(&err) => {
                 let target_path = &self.inner.config.binary_path;
                 println!(
-                    "Audetic needs elevated privileges to update {}.",
+                    "wisprarch needs elevated privileges to update {}.",
                     target_path.display()
                 );
                 println!("You may be prompted for your password.");
@@ -460,7 +460,7 @@ impl UpdateEngine {
     fn install_binary_with_sudo(&self, staged: &Path, version: &str) -> Result<()> {
         if !sudo_available() {
             return Err(anyhow!(
-                "sudo is not available. Please run `audetic update` with elevated permissions."
+                "sudo is not available. Please run `wisprarch update` with elevated permissions."
             ));
         }
         let target_path = &self.inner.config.binary_path;

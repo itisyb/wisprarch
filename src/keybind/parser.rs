@@ -274,14 +274,14 @@ mod tests {
     #[test]
     fn test_parse_bindd_with_description() {
         let line =
-            "bindd = SUPER SHIFT, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle";
+            "bindd = SUPER SHIFT, R, wisprarch, exec, curl -X POST http://127.0.0.1:3737/toggle";
         let binding = parse_bind_line(line, Path::new("/test"), 1).unwrap();
 
         assert_eq!(binding.bind_type, BindType::Bindd);
         assert!(binding.modifiers.contains(&Modifier::Super));
         assert!(binding.modifiers.contains(&Modifier::Shift));
         assert_eq!(binding.key, "R");
-        assert_eq!(binding.description, Some("Audetic".to_string()));
+        assert_eq!(binding.description, Some("wisprarch".to_string()));
         assert_eq!(binding.dispatcher, "exec");
     }
 

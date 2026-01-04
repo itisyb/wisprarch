@@ -4,12 +4,12 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
-use super::{ProposedBinding, AUDETIC_SECTION_MARKER};
+use super::{ProposedBinding, WISPRARCH_SECTION_MARKER};
 
 /// Write a binding to the config file
 ///
 /// This function will:
-/// 1. Look for an existing Audetic section and update it
+/// 1. Look for an existing wisprarch section and update it
 /// 2. Or append a new section at the end of the file
 pub fn write_binding(config_path: &Path, binding: &ProposedBinding) -> Result<()> {
     let content = fs::read_to_string(config_path)
@@ -23,14 +23,14 @@ pub fn write_binding(config_path: &Path, binding: &ProposedBinding) -> Result<()
     Ok(())
 }
 
-/// Update existing Audetic binding or append new one
+/// Update existing wisprarch binding or append new one
 fn update_or_append_binding(content: &str, binding: &ProposedBinding) -> String {
     let binding_line = binding.to_hyprland_line();
-    let section = format!("{}\n{}", AUDETIC_SECTION_MARKER, binding_line);
+    let section = format!("{}\n{}", WISPRARCH_SECTION_MARKER, binding_line);
 
-    // Check if there's an existing Audetic section
-    if let Some(start_idx) = content.find(AUDETIC_SECTION_MARKER) {
-        // Find the end of the Audetic section (next blank line or comment section)
+    // Check if there's an existing wisprarch section
+    if let Some(start_idx) = content.find(WISPRARCH_SECTION_MARKER) {
+        // Find the end of the wisprarch section (next blank line or comment section)
         let after_marker = &content[start_idx..];
         let section_end = find_section_end(after_marker);
         let end_idx = start_idx + section_end;
@@ -59,7 +59,7 @@ fn update_or_append_binding(content: &str, binding: &ProposedBinding) -> String 
     }
 }
 
-/// Find the end of the Audetic section
+/// Find the end of the wisprarch section
 fn find_section_end(section: &str) -> usize {
     let mut in_section = false;
     let mut last_content_end = 0;
@@ -78,12 +78,12 @@ fn find_section_end(section: &str) -> usize {
             if trimmed.is_empty() {
                 // End of section at blank line
                 break;
-            } else if trimmed.starts_with('#') && !trimmed.contains("Audetic") {
+            } else if trimmed.starts_with('#') && !trimmed.contains("wisprarch") {
                 // New comment section starts
                 break;
             } else if trimmed.starts_with("bind")
-                || trimmed.contains("audetic")
-                || trimmed.to_lowercase().contains("audetic")
+                || trimmed.contains("wisprarch")
+                || trimmed.to_lowercase().contains("wisprarch")
             {
                 // Part of our section
                 last_content_end += line.len() + 1;
@@ -99,12 +99,12 @@ fn find_section_end(section: &str) -> usize {
     last_content_end
 }
 
-/// Remove Audetic binding from the config file
+/// Remove wisprarch binding from the config file
 pub fn remove_binding(config_path: &Path) -> Result<bool> {
     let content = fs::read_to_string(config_path)
         .with_context(|| format!("Failed to read config file: {:?}", config_path))?;
 
-    if let Some(start_idx) = content.find(AUDETIC_SECTION_MARKER) {
+    if let Some(start_idx) = content.find(WISPRARCH_SECTION_MARKER) {
         let after_marker = &content[start_idx..];
         let section_end = find_section_end(after_marker);
         let end_idx = start_idx + section_end;
@@ -143,27 +143,27 @@ mod tests {
         let binding = ProposedBinding {
             modifiers: Modifiers::from_strs(&["SUPER"]),
             key: "R".to_string(),
-            description: "Audetic".to_string(),
+            description: "wisprarch".to_string(),
             command: "curl -X POST http://127.0.0.1:3737/toggle".to_string(),
         };
 
         let result = update_or_append_binding(content, &binding);
 
-        assert!(result.contains(AUDETIC_SECTION_MARKER));
-        assert!(result.contains("bindd = SUPER, R, Audetic"));
+        assert!(result.contains(WISPRARCH_SECTION_MARKER));
+        assert!(result.contains("bindd = SUPER, R, wisprarch"));
         assert!(result.contains("# Existing config"));
     }
 
     #[test]
     fn test_update_existing_binding() {
         let content = format!(
-            "# Existing config\n{}\nbindd = SUPER, R, Audetic, exec, old-command\n\n# Other stuff\n",
-            AUDETIC_SECTION_MARKER
+            "# Existing config\n{}\nbindd = SUPER, R, wisprarch, exec, old-command\n\n# Other stuff\n",
+            WISPRARCH_SECTION_MARKER
         );
         let binding = ProposedBinding {
             modifiers: Modifiers::from_strs(&["SUPER", "SHIFT"]),
             key: "R".to_string(),
-            description: "Audetic".to_string(),
+            description: "wisprarch".to_string(),
             command: "curl -X POST http://127.0.0.1:3737/toggle".to_string(),
         };
 

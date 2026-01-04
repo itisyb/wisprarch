@@ -119,7 +119,7 @@ fn handle_search_mode(args: &HistoryCliArgs) -> Result<()> {
         println!("---");
     }
 
-    println!("\nTo copy a transcription to clipboard, use: audetic history --copy <ID>");
+    println!("\nTo copy a transcription to clipboard, use: wisprarch history --copy <ID>");
 
     Ok(())
 }

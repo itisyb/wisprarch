@@ -39,12 +39,12 @@ pub async fn handle_update_command(args: UpdateCliArgs) -> Result<()> {
             .unwrap_or("the newly installed version");
         match restart_user_service() {
             Ok(()) => {
-                println!("Audetic service restarted via systemd user service.");
+                println!("wisprarch service restarted via systemd user service.");
             }
             Err(err) => {
-                eprintln!("Failed to restart Audetic automatically: {err}");
+                eprintln!("Failed to restart wisprarch automatically: {err}");
                 println!(
-                    "Please restart the Audetic service manually (e.g. `systemctl --user restart audetic.service`) to begin running {}.",
+                    "Please restart the wisprarch service manually (e.g. `systemctl --user restart wisprarch.service`) to begin running {}.",
                     remote
                 );
             }
@@ -58,18 +58,18 @@ fn restart_user_service() -> Result<()> {
     match Command::new("systemctl")
         .arg("--user")
         .arg("restart")
-        .arg("audetic.service")
+        .arg("wisprarch.service")
         .status()
     {
         Ok(status) if status.success() => Ok(()),
         Ok(status) => Err(anyhow!(
-            "systemctl reported failure restarting audetic.service (exit status: {status})"
+            "systemctl reported failure restarting wisprarch.service (exit status: {status})"
         )),
         Err(err) if err.kind() == io::ErrorKind::NotFound => Err(anyhow!(
-            "systemctl binary not found in PATH, cannot restart audetic.service automatically"
+            "systemctl binary not found in PATH, cannot restart wisprarch.service automatically"
         )),
         Err(err) => Err(anyhow!(
-            "Failed to invoke systemctl --user restart audetic.service: {err}"
+            "Failed to invoke systemctl --user restart wisprarch.service: {err}"
         )),
     }
 }

@@ -11,8 +11,8 @@ mod transcription_service;
 pub mod providers;
 
 pub use providers::{
-    AssemblyAIProvider, AudeticProvider, OpenAIProvider, OpenAIWhisperCliProvider,
-    TranscriptionProvider, WhisperCppProvider,
+    AssemblyAIProvider, GroqProvider, OpenAIProvider, OpenAIWhisperCliProvider, ParakeetModel,
+    ParakeetProvider, TranscriptionProvider, WhisperCppProvider,
 };
 
 pub use transcription_service::TranscriptionService;
@@ -27,7 +27,15 @@ impl Transcriber {
         let language = config.language.clone().unwrap_or_else(|| "en".to_string());
 
         let provider: Box<dyn TranscriptionProvider> = match provider_name {
-            "audetic-api" => Box::new(AudeticProvider::new(config.api_endpoint)?),
+            "groq" | "groq-api" => {
+                let api_key = config
+                    .api_key
+                    .context("api_key is required for Groq provider")?;
+                let model = config.model;
+                Box::new(GroqProvider::new(api_key, model)?)
+            }
+            "parakeet-v2" => Box::new(ParakeetProvider::new("parakeet-v2")?),
+            "parakeet-v3" => Box::new(ParakeetProvider::new("parakeet-v3")?),
             "assembly-ai" => {
                 let api_key = config
                     .api_key
@@ -56,7 +64,7 @@ impl Transcriber {
                 )?)
             }
             _ => bail!(
-                "Unknown transcription provider '{}'. Supported providers: audetic-api, assembly-ai, openai-api, openai-cli, whisper-cpp",
+                "Unknown transcription provider '{}'. Supported: groq, parakeet-v2, parakeet-v3, openai-api, openai-cli, whisper-cpp, assembly-ai",
                 provider_name
             ),
         };
@@ -189,7 +197,14 @@ pub fn get_provider_status_from_config(whisper: &WhisperConfig) -> Result<Provid
 /// Validate provider configuration and return an error message if invalid.
 pub fn validate_provider_config(provider: &str, whisper: &WhisperConfig) -> Option<String> {
     match provider {
-        "audetic-api" => None, // No additional config required
+        "groq" | "groq-api" => {
+            if whisper.api_key.is_none() {
+                Some("API key required for Groq".to_string())
+            } else {
+                None
+            }
+        }
+        "parakeet-v2" | "parakeet-v3" => None,
         "assembly-ai" => {
             if whisper.api_key.is_none() {
                 Some("API key required for AssemblyAI".to_string())

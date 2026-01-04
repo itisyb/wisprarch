@@ -1,9 +1,9 @@
 {
 	"apps": [
 		{
-			"name": "audetic-releases",
+			"name": "wisprarch-releases",
 			"source_dir": "release",
-			"description": "Contains the releases for audetic",
+			"description": "Contains the releases for wisprarch",
 			"enabled": true
 		}
 	]

@@ -1,6 +1,6 @@
-# Audetic Configuration Guide
+# wisprarch Configuration Guide
 
-Audetic is configured via a single TOML file located at `~/.config/audetic/config.toml`. This guide covers everything you need to know about configuring Audetic for your needs.
+wisprarch is configured via a single TOML file located at `~/.config/wisprarch/config.toml`. This guide covers everything you need to know about configuring wisprarch for your needs.
 
 ## Quick Start
 
@@ -8,36 +8,36 @@ The minimal configuration to get started:
 
 ```toml
 [whisper]
-provider = "audetic-api"
+provider = "wisprarch-api"
 language = "en"
 
 # Set your provider-specific credentials:
 # api_key = "sk-your-api-key-here"
 ```
 
-Audetic will create a default configuration file on first run if none exists.
+wisprarch will create a default configuration file on first run if none exists.
 
 ## Provider CLI Helpers
 
-Instead of editing `~/.config/audetic/config.toml` manually, you can use the built-in CLI commands:
+Instead of editing `~/.config/wisprarch/config.toml` manually, you can use the built-in CLI commands:
 
 ```bash
 # Show the current provider setup (masks secrets)
-audetic provider show
+wisprarch provider show
 
 # Launch an interactive wizard to switch providers or update credentials
-audetic provider configure
+wisprarch provider configure
 
 # Validate the stored provider without starting a recording session
-audetic provider test
+wisprarch provider test
 ```
 
 **What each command does:**
 - **`provider show`**: Displays your current provider, model, and language settings (API keys are masked for security)
-- **`provider configure`**: Interactive wizard that walks you through selecting a provider (Audetic API, OpenAI API, OpenAI CLI, whisper.cpp) and setting up credentials/paths
+- **`provider configure`**: Interactive wizard that walks you through selecting a provider (wisprarch API, OpenAI API, OpenAI CLI, whisper.cpp) and setting up credentials/paths
 - **`provider test`**: Validates your provider configuration without recording audio - useful for troubleshooting
 
-> **Note:** `audetic provider configure` must run in a TTY/interactive shell. When the command detects piped/stdin input it logs an info message and exits so you can update the config file manually instead.
+> **Note:** `wisprarch provider configure` must run in a TTY/interactive shell. When the command detects piped/stdin input it logs an info message and exits so you can update the config file manually instead.
 
 ## Complete Configuration Example
 
@@ -80,7 +80,7 @@ Configures speech-to-text transcription providers and models.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `provider` | string | `"audetic-api"` | Transcription provider: `"audetic-api"`, `"openai-api"`, `"openai-cli"`, `"whisper-cpp"` |
+| `provider` | string | `"wisprarch-api"` | Transcription provider: `"wisprarch-api"`, `"openai-api"`, `"openai-cli"`, `"whisper-cpp"` |
 | `api_key` | string | none | API key for API-based providers (required for openai-api) |
 | `model` | string | `"base"` | Model name (provider-specific, see Providers section) |
 | `language` | string | `"en"` | Language code (ISO 639-1 format) |
@@ -90,14 +90,14 @@ Configures speech-to-text transcription providers and models.
 
 #### Providers
 
-Audetic supports multiple transcription providers:
+wisprarch supports multiple transcription providers:
 
-**Audetic API** (`provider = "audetic-api"`) - **Default & Recommended**
+**wisprarch API** (`provider = "wisprarch-api"`) - **Default & Recommended**
 - **Best for:** Zero-config cloud transcription - just install and go
 - **Requirements:** None (no API key, no local setup, internet connection)
-- **How it works:** Sends audio to Audetic's hosted Whisper service for transcription
+- **How it works:** Sends audio to wisprarch's hosted Whisper service for transcription
 - **Models:** Large-v3-turbo (automatically managed server-side)
-- **Privacy:** Audio is processed on Audetic servers, not stored permanently
+- **Privacy:** Audio is processed on wisprarch servers, not stored permanently
 - **Cost:** Free for personal use
 - **Speed:** Fast, no local GPU/CPU requirements
 - **Why use it:** Easiest setup, consistently fast, no model management
@@ -177,7 +177,7 @@ Configures integration with Wayland desktop environments.
 
 ### [behavior] - Application Behavior
 
-Controls how Audetic handles transcribed text and temporary files.
+Controls how wisprarch handles transcribed text and temporary files.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -188,15 +188,15 @@ Controls how Audetic handles transcribed text and temporary files.
 
 ## Configuration File Location
 
-Audetic looks for its configuration file at:
+wisprarch looks for its configuration file at:
 
-- **Linux:** `~/.config/audetic/config.toml`
-- **macOS:** `~/Library/Application Support/audetic/config.toml`
-- **Windows:** `%APPDATA%\audetic\config.toml`
+- **Linux:** `~/.config/wisprarch/config.toml`
+- **macOS:** `~/Library/Application Support/wisprarch/config.toml`
+- **Windows:** `%APPDATA%\wisprarch\config.toml`
 
 ## Environment Variables
 
-Audetic respects these environment variables:
+wisprarch respects these environment variables:
 
 | Variable | Description |
 |----------|-------------|
@@ -204,10 +204,10 @@ Audetic respects these environment variables:
 
 ## Common Configuration Scenarios
 
-### Quick Start (Audetic API - Default)
+### Quick Start (wisprarch API - Default)
 ```toml
 [whisper]
-provider = "audetic-api"  # Zero-config hosted service
+provider = "wisprarch-api"  # Zero-config hosted service
 language = "en"
 
 # That's it! No API keys, no local setup required.
@@ -297,8 +297,8 @@ model = "whisper-1"
 - Verify boolean values: `true`/`false` not `"true"`/`"false"`
 
 **"Config file not found"**
-- Audetic will create a default config on first run
-- Manually create the config directory: `mkdir -p ~/.config/audetic`
+- wisprarch will create a default config on first run
+- Manually create the config directory: `mkdir -p ~/.config/wisprarch`
 
 ### Provider Issues
 
@@ -322,8 +322,8 @@ model = "whisper-1"
 
 Test your configuration:
 ```bash
-# Start Audetic with verbose logging
-RUST_LOG=debug audetic
+# Start wisprarch with verbose logging
+RUST_LOG=debug wisprarch
 
 # Look for these log messages:
 # "Loaded config from ..."

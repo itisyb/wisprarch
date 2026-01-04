@@ -12,7 +12,7 @@ const RELEASE_DIR = path.join(ROOT_DIR, "release", "cli");
 const RELEASES_ROOT = path.join(RELEASE_DIR, "releases");
 const CARGO_TOML = path.join(ROOT_DIR, "Cargo.toml");
 const CARGO_LOCK = path.join(ROOT_DIR, "Cargo.lock");
-const SERVICE_FILE = path.join(ROOT_DIR, "audetic.service");
+const SERVICE_FILE = path.join(ROOT_DIR, "wisprarch.service");
 const EXAMPLE_CONFIG = path.join(ROOT_DIR, "example_config.toml");
 
 $.cwd(ROOT_DIR);
@@ -53,7 +53,7 @@ if (!config.targets.length) {
 	process.exit(1);
 }
 
-console.log("==> Audetic release");
+console.log("==> wisprarch release");
 console.log(`Targets: ${config.targets.join(", ")}`);
 console.log(`Dry run: ${config.dryRun ? "yes" : "no"}`);
 
@@ -69,7 +69,7 @@ await syncVersions(version);
 await maybeRunTests();
 await ensureNotes(version);
 
-const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "audetic-release-"));
+const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "wisprarch-release-"));
 const artifacts: Artifact[] = [];
 const failures: TargetFailure[] = [];
 
@@ -248,8 +248,8 @@ async function syncVersions(version: string) {
 	await updateTomlVersion(CARGO_TOML, version);
 
 	const lockContents = await readFileOrNull(CARGO_LOCK);
-	if (lockContents?.includes('name = "audetic"')) {
-		await updateTomlVersion(CARGO_LOCK, version, 'name = "audetic"');
+	if (lockContents?.includes('name = "wisprarch"')) {
+		await updateTomlVersion(CARGO_LOCK, version, 'name = "wisprarch"');
 	}
 }
 
@@ -304,7 +304,7 @@ async function generateReleaseNotes(version: string, notesPath: string) {
 		console.warn(
 			"==> Could not find previous version, creating placeholder notes",
 		);
-		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		const content = `# wisprarch ${version}\n\n- TODO: describe highlights.\n`;
 		await Bun.write(notesPath, content);
 		return;
 	}
@@ -315,7 +315,7 @@ async function generateReleaseNotes(version: string, notesPath: string) {
 
 	if (!gitLog.trim()) {
 		console.warn("==> No commits found, creating placeholder notes");
-		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		const content = `# wisprarch ${version}\n\n- TODO: describe highlights.\n`;
 		await Bun.write(notesPath, content);
 		return;
 	}
@@ -323,20 +323,20 @@ async function generateReleaseNotes(version: string, notesPath: string) {
 	// Check if opencode is available
 	if (!Bun.which("opencode")) {
 		console.warn("==> opencode CLI not found, creating placeholder notes");
-		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		const content = `# wisprarch ${version}\n\n- TODO: describe highlights.\n`;
 		await Bun.write(notesPath, content);
 		return;
 	}
 
 	// Create a detailed prompt for opencode
-	const prompt = `Generate concise release notes for version ${version} of Audetic, a Linux audio transcription daemon.
+	const prompt = `Generate concise release notes for version ${version} of wisprarch, an Arch Linux audio transcription daemon.
 
 Based on the following git commits:
 
 ${gitLog}
 
 Please create release notes in markdown format following this structure:
-# Audetic ${version}
+# wisprarch ${version}
 
 Brief description of what's new or changed in this release (1-2 sentences).
 
@@ -387,20 +387,20 @@ Return ONLY the markdown content, no explanations or extra text.`;
 			console.log("==> Successfully generated release notes");
 			await Bun.write(notesPath, generatedNotes.trim() + "\n");
 		} else {
-			console.warn(
-				"==> opencode returned empty response, creating placeholder notes",
-			);
-			const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
-			await Bun.write(notesPath, content);
-		}
-	} catch (error) {
-		console.error(
-			`==> Failed to generate release notes with opencode: ${error}`,
+		console.warn(
+			"==> opencode returned empty response, creating placeholder notes",
 		);
-		console.warn("==> Creating placeholder notes");
-		const content = `# Audetic ${version}\n\n- TODO: describe highlights.\n`;
+		const content = `# wisprarch ${version}\n\n- TODO: describe highlights.\n`;
 		await Bun.write(notesPath, content);
 	}
+} catch (error) {
+	console.error(
+		`==> Failed to generate release notes with opencode: ${error}`,
+	);
+	console.warn("==> Creating placeholder notes");
+	const content = `# wisprarch ${version}\n\n- TODO: describe highlights.\n`;
+	await Bun.write(notesPath, content);
+}
 }
 
 async function getPreviousVersion(
@@ -462,35 +462,35 @@ async function packageTarget(
 		"target",
 		rustTarget,
 		"release",
-		"audetic",
+		"wisprarch",
 	);
 	await assertPath(binaryPath, "compiled binary");
 
 	const stageDir = path.join(tmpRoot, targetId);
 	await mkdir(stageDir, { recursive: true });
 
-	await copyFile(binaryPath, path.join(stageDir, "audetic"));
-	await assertPath(SERVICE_FILE, "audetic.service");
-	await copyFile(SERVICE_FILE, path.join(stageDir, "audetic.service"));
+	await copyFile(binaryPath, path.join(stageDir, "wisprarch"));
+	await assertPath(SERVICE_FILE, "wisprarch.service");
+	await copyFile(SERVICE_FILE, path.join(stageDir, "wisprarch.service"));
 	await assertPath(EXAMPLE_CONFIG, "example_config");
 	await copyFile(EXAMPLE_CONFIG, path.join(stageDir, "example_config.toml"));
 	await Bun.write(
 		path.join(stageDir, "README.txt"),
-		`Audetic ${version} (${targetId})
+		`wisprarch ${version} (${targetId})
 
 Files:
-  audetic             - main binary
-  audetic.service     - systemd user unit template
+  wisprarch             - main binary
+  wisprarch.service     - systemd user unit template
   example_config.toml - starter configuration
 
-Installation instructions: https://install.audetic.ai/
+Installation instructions: https://github.com/wisprarch/wisprarch
 `,
 	);
 
 	const releaseDir = path.join(RELEASES_ROOT, version);
 	await mkdir(releaseDir, { recursive: true });
 
-	const archiveName = `audetic-${version}-${targetId}.tar.gz`;
+	const archiveName = `wisprarch-${version}-${targetId}.tar.gz`;
 	const archivePath = path.join(releaseDir, archiveName);
 	await $`tar -C ${stageDir} -czf ${archivePath} .`;
 
@@ -544,7 +544,7 @@ async function writeManifest(version: string, artifacts: Artifact[]) {
 		version,
 		channel: config.channel,
 		release_date: config.releaseDate,
-		notes_url: `https://install.audetic.ai/cli/releases/${version}/notes.md`,
+		notes_url: `https://github.com/wisprarch/wisprarch/releases/${version}/notes.md`,
 		targets,
 	};
 	await Bun.write(manifestPath, `${JSON.stringify(next, null, 2)}\n`);
@@ -572,7 +572,7 @@ async function tagRelease(version: string) {
 	} catch {
 		// missing tag
 	}
-	await $`git tag -a ${`v${version}`} -m ${`Audetic ${version}`}`;
+	await $`git tag -a ${`v${version}`} -m ${`wisprarch ${version}`}`;
 	await $`git push origin ${`v${version}`}`;
 }
 

@@ -1,38 +1,13 @@
 [whisper]
-# Provider selection (required)
-# Supported values: "audetic-api" (default), "openai-api", "openai-cli", "whisper-cpp"
-provider = "audetic-api"
-
-# Common settings
-model = "base"              # Model size: tiny, base, small, medium, large-v3, large-v3-turbo
-language = "en"             # Language code (en, es, fr, de, etc.)
-
-# whisper.cpp settings (used when provider = "whisper-cpp")
-# command_path = "/path/to/whisper-cli"  # Optional custom path
-# model_path = "/path/to/model.bin"      # Optional custom model path
-
-# OpenAI CLI settings (used when provider = "openai-cli")
-# command_path = "/path/to/whisper"      # Optional custom path
-
-# OpenAI API settings (used when provider = "openai-api")
-# api_key = "sk-your-key"                # Required for API
-# model = "whisper-1"                    # API model name
-# api_endpoint = "https://api.openai.com/v1/audio/transcriptions"  # Optional
-
-[ui]
-notification_color = "rgb(ff1744)"  # Hyprland notification color
-
-[ui.waybar]
-idle_text = "󰑊"                # Icon shown when idle (ready to record) - Nerd Font
-recording_text = "󰻃"           # Icon shown when recording - Nerd Font
-idle_tooltip = "Press Super+R to record"
-recording_tooltip = "Recording... Press Super+R to stop"
-
-[wayland]
-input_method = "ydotool"  # Recommended: works on KDE, GNOME, Sway, Hyprland (auto-detected first)
+provider = "groq"
+model = "whisper-large-v3-turbo"
+language = "en"
 
 [behavior]
 auto_paste = true
-preserve_clipboard = false
 delete_audio_files = true
 audio_feedback = true
+
+[ui.waybar]
+idle_text = "󰓃"
+recording_text = "󰻃"

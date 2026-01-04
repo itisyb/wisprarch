@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  wisprarch:
+    build: .
+    image: wisprarch:latest
+    container_name: wisprarch
+    volumes:
+      - ~/.config/wisprarch:/config
+      - ~/.local/share/wisprarch/models:/models
+      - /run/user/1000/pulse:/run/user/1000/pulse
+      - /dev/snd:/dev/snd
+    environment:
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+      - RUST_LOG=info
+    ports:
+      - "3737:3737"
+    devices:
+      - /dev/snd
+    group_add:
+      - audio
+    restart: unless-stopped

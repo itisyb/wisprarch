@@ -158,22 +158,22 @@ fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> 
     let (text, class, tooltip) = match status.phase {
         RecordingPhase::Idle => (
             config.idle_text.clone(),
-            "audetic-idle".to_string(),
+            "wisprarch-idle".to_string(),
             config.idle_tooltip.clone(),
         ),
         RecordingPhase::Recording => (
             config.recording_text.clone(),
-            "audetic-recording".to_string(),
+            "wisprarch-recording".to_string(),
             config.recording_tooltip.clone(),
         ),
         RecordingPhase::Processing => (
             "󰦖".to_string(),
-            "audetic-processing".to_string(),
+            "wisprarch-processing".to_string(),
             "Processing transcription".to_string(),
         ),
         RecordingPhase::Error => (
             "".to_string(),
-            "audetic-error".to_string(),
+            "wisprarch-error".to_string(),
             status
                 .last_error
                 .clone()

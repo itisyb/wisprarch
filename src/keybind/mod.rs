@@ -1,7 +1,7 @@
 //! Keybinding management for Hyprland integration.
 //!
 //! This module provides functionality to discover, parse, and modify
-//! Hyprland keybinding configurations for Audetic.
+//! Hyprland keybinding configurations for wisprarch.
 //!
 //! # High-level API
 //!
@@ -33,12 +33,13 @@ use discovery::get_all_config_files;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-/// Default keybinding configuration for Audetic
+/// Default keybinding configuration for wisprarch
 pub const DEFAULT_KEY: &str = "R";
 pub const DEFAULT_MODIFIERS: &[&str] = &["SUPER"];
 pub const FALLBACK_MODIFIERS: &[&str] = &["SUPER", "SHIFT"];
-pub const AUDETIC_SECTION_MARKER: &str = "# Audetic voice-to-text (managed by audetic keybind)";
-pub const AUDETIC_TOGGLE_ENDPOINT: &str = "http://127.0.0.1:3737/toggle";
+pub const WISPRARCH_SECTION_MARKER: &str =
+    "# wisprarch voice-to-text (managed by wisprarch keybind)";
+pub const WISPRARCH_TOGGLE_ENDPOINT: &str = "http://127.0.0.1:3737/toggle";
 
 /// Represents a proposed keybinding to install
 #[derive(Debug, Clone)]
@@ -54,8 +55,8 @@ impl Default for ProposedBinding {
         Self {
             modifiers: Modifiers::from_strs(DEFAULT_MODIFIERS),
             key: DEFAULT_KEY.to_string(),
-            description: "Audetic".to_string(),
-            command: format!("curl -X POST {}", AUDETIC_TOGGLE_ENDPOINT),
+            description: "wisprarch".to_string(),
+            command: format!("curl -X POST {}", WISPRARCH_TOGGLE_ENDPOINT),
         }
     }
 }
@@ -118,8 +119,8 @@ pub fn check_conflicts(
     }
 }
 
-/// Find existing Audetic bindings in the configuration
-pub fn find_audetic_bindings(bindings: &[HyprBinding]) -> Vec<&HyprBinding> {
+/// Find existing wisprarch bindings in the configuration
+pub fn find_wisprarch_bindings(bindings: &[HyprBinding]) -> Vec<&HyprBinding> {
     bindings
         .iter()
         .filter(|b| {
@@ -127,17 +128,17 @@ pub fn find_audetic_bindings(bindings: &[HyprBinding]) -> Vec<&HyprBinding> {
                 || b.command.contains("localhost:3737")
                 || b.description
                     .as_ref()
-                    .map(|d| d.to_lowercase().contains("audetic"))
+                    .map(|d| d.to_lowercase().contains("wisprarch"))
                     .unwrap_or(false)
         })
         .collect()
 }
 
-/// Status of Audetic keybinding installation
+/// Status of wisprarch keybinding installation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum KeybindStatus {
-    /// Audetic keybinding is installed
+    /// wisprarch keybinding is installed
     Installed {
         #[serde(skip)]
         binding: Box<Option<HyprBinding>>,
@@ -147,7 +148,7 @@ pub enum KeybindStatus {
         /// The command bound to the key
         command: String,
     },
-    /// No Audetic keybinding found
+    /// No wisprarch keybinding found
     NotInstalled { config_path: Option<PathBuf> },
     /// No Hyprland config found
     NoConfig,
@@ -179,10 +180,10 @@ pub struct UninstallResult {
 // High-level API functions
 // ============================================================================
 
-/// Get the current status of Audetic keybinding.
+/// Get the current status of wisprarch keybinding.
 ///
 /// This function checks the Hyprland configuration to determine if
-/// an Audetic keybinding is installed.
+/// an wisprarch keybinding is installed.
 pub fn get_status() -> Result<KeybindStatus> {
     let discovery = discover_config()?;
 
@@ -191,14 +192,14 @@ pub fn get_status() -> Result<KeybindStatus> {
         None => return Ok(KeybindStatus::NoConfig),
     };
 
-    // Parse all config files for Audetic bindings
+    // Parse all config files for wisprarch bindings
     let all_files = get_all_config_files(&discovery);
     let mut all_bindings = Vec::new();
     for file in all_files {
         all_bindings.extend(parse_bindings(file));
     }
 
-    let existing = find_audetic_bindings(&all_bindings);
+    let existing = find_wisprarch_bindings(&all_bindings);
 
     if let Some(binding) = existing.into_iter().next() {
         Ok(KeybindStatus::Installed {
@@ -214,7 +215,7 @@ pub fn get_status() -> Result<KeybindStatus> {
     }
 }
 
-/// Install an Audetic keybinding.
+/// Install an wisprarch keybinding.
 ///
 /// # Arguments
 /// * `key` - Optional custom key string (e.g., "SUPER SHIFT, R" or "SUPER+T").
@@ -276,7 +277,7 @@ pub fn install(key: Option<&str>, dry_run: bool) -> Result<Option<InstallResult>
     }))
 }
 
-/// Uninstall the Audetic keybinding.
+/// Uninstall the wisprarch keybinding.
 ///
 /// # Arguments
 /// * `dry_run` - If true, only check without making changes.

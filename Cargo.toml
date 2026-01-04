@@ -1,13 +1,13 @@
 [package]
-name = "audetic"
-version = "0.1.18"
+name = "wisprarch"
+version = "0.2.0"
 edition = "2021"
-authors = ["Mat Silva"]
-description = "Voice To Text Application for Wayland/Hyprland"
+authors = ["Mat Silva", "WisprArch Contributors"]
+description = "Fast speech-to-text for Arch Linux / Hyprland with Groq, Parakeet, and Whisper models"
 license = "MIT"
 
 [[bin]]
-name = "audetic"
+name = "wisprarch"
 path = "src/main.rs"
 
 [dependencies]
@@ -54,7 +54,7 @@ axum = "0.7"
 tower = "0.4"
 
 # HTTP client for OpenAI API
-reqwest = { version = "0.11", features = ["json", "multipart"] }
+reqwest = { version = "0.11", features = ["json", "multipart", "stream"] }
 semver = "1.0"
 sha2 = "0.10"
 flate2 = "1.0"
@@ -64,3 +64,13 @@ fs2 = "0.4"
 rusqlite = "0.37.0"
 chrono = "0.4"
 uuid = { version = "1.18.1", features = ["v4"] }
+
+# Speech-to-text
+parakeet-rs = "0.2"
+
+# TUI
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Async utilities
+futures-util = "0.3"

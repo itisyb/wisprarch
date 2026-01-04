@@ -16,7 +16,7 @@ use tokio::sync::{mpsc, Mutex};
 use tracing::{error, info, warn};
 
 pub async fn run_service() -> Result<()> {
-    info!("Starting Audetic service");
+    info!("Starting wisprarch service");
 
     let config = Config::load()?;
 
@@ -55,9 +55,9 @@ pub async fn run_service() -> Result<()> {
 
     spawn_update_manager();
 
-    info!("Audetic is ready!");
+    info!("wisprarch is ready!");
     info!("Add this to your Hyprland config:");
-    info!("bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle");
+    info!("bindd = SUPER, R, wisprarch, exec, curl -X POST http://127.0.0.1:3737/toggle");
     info!("Or test manually: curl -X POST http://127.0.0.1:3737/toggle");
 
     while let Some(command) = rx.recv().await {
@@ -99,7 +99,7 @@ fn build_transcriber(config: &Config) -> Result<Transcriber> {
         .whisper
         .provider
         .as_deref()
-        .ok_or_else(|| anyhow!("No transcription provider configured. Set [whisper].provider in ~/.config/audetic/config.toml"))?;
+        .ok_or_else(|| anyhow!("No transcription provider configured. Set [whisper].provider in ~/.config/wisprarch/config.toml"))?;
 
     let provider_config = ProviderConfig {
         model: config.whisper.model.clone(),

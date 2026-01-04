@@ -64,12 +64,12 @@ fn default_audio_feedback() -> bool {
 impl Default for WhisperConfig {
     fn default() -> Self {
         Self {
-            model: Some("base".to_string()),
+            model: Some("whisper-large-v3-turbo".to_string()),
             language: Some("en".to_string()),
             command_path: None,
             model_path: None,
             api_endpoint: None,
-            provider: Some("audetic-api".to_string()),
+            provider: Some("groq".to_string()),
             api_key: None,
         }
     }

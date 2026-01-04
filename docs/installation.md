@@ -1,21 +1,21 @@
-# Audetic Installation Guide
+# wisprarch Installation Guide
 
 Complete installation instructions for different operating systems and environments.
 
 ## Quick Install (Recommended)
 
-Audetic now ships verified binaries for Linux and macOS. Install or reinstall the service with one command—no Rust toolchain, git clone, or manual builds required:
+wisprarch now ships verified binaries for Linux and macOS. Install or reinstall the service with one command—no Rust toolchain, git clone, or manual builds required:
 
 ```bash
-curl -fsSL https://install.audetic.ai/cli/latest.sh | bash
+curl -fsSL https://install.wisprarch.dev/cli/latest.sh | bash
 ```
 
 The installer:
 
 - Detects your OS/architecture and selects the matching artifact.
 - Verifies SHA-256 (and optional signatures) before extracting.
-- Installs the `audetic` binary into `/usr/local/bin` (or a custom prefix).
-- Drops the systemd user unit plus config scaffolding under `~/.config/audetic`.
+- Installs the `wisprarch` binary into `/usr/local/bin` (or a custom prefix).
+- Drops the systemd user unit plus config scaffolding under `~/.config/wisprarch`.
 - Seeds `update_state.json` so the built-in auto-updater can take over.
 - Is idempotent—rerun anytime to repair, reinstall, or switch channels.
 
@@ -28,14 +28,14 @@ latest.sh --dry-run                 # fetch & verify artifacts without touching 
 ```
 
 After install:
-1. The installer automatically enables/starts the systemd **user** service (unless `--no-start` was set). Use `systemctl --user status audetic.service` to confirm.
+1. The installer automatically enables/starts the systemd **user** service (unless `--no-start` was set). Use `systemctl --user status wisprarch.service` to confirm.
 2. Add a keybind in Hyprland (or your compositor) that calls `curl -X POST http://127.0.0.1:3737/toggle`.
-3. Edit `~/.config/audetic/config.toml` if you need custom providers, models, or behavior tweaks.
+3. Edit `~/.config/wisprarch/config.toml` if you need custom providers, models, or behavior tweaks.
 
 ## Manual Installation
 
 > **When should I use this?**  
-> Only when you need to hack on Audetic itself or build for a platform that doesn't have pre-built binaries yet. Everyone else should stick with the `latest.sh` installer above.
+> Only when you need to hack on wisprarch itself or build for a platform that doesn't have pre-built binaries yet. Everyone else should stick with the `latest.sh` installer above.
 
 ### Prerequisites
 
@@ -78,7 +78,7 @@ sudo dnf install rust cargo ydotool cmake gcc-c++ alsa-lib-devel curl openssl-de
 
 ### Text Injection Setup
 
-Audetic requires a text injection method. See the [Text Injection Setup Guide](./text-injection-setup.md) for detailed configuration.
+wisprarch requires a text injection method. See the [Text Injection Setup Guide](./text-injection-setup.md) for detailed configuration.
 
 **Quick setup for ydotool (recommended):**
 
@@ -93,15 +93,15 @@ source ~/.bashrc
 
 ## Whisper Installation Options
 
-Audetic supports multiple Whisper implementations:
+wisprarch supports multiple Whisper implementations:
 
 ### Option 1: Optimized whisper.cpp (Recommended)
 
 Use the optimized fork with automatic build:
 
 ```bash
-git clone https://github.com/matsilva/whisper.git ~/.local/share/audetic/whisper
-cd ~/.local/share/audetic/whisper
+git clone https://github.com/matsilva/whisper.git ~/.local/share/wisprarch/whisper
+cd ~/.local/share/wisprarch/whisper
 ./build.sh
 ```
 
@@ -122,19 +122,19 @@ make
 ./models/download-ggml-model.sh base
 ```
 
-## Building Audetic
+## Building wisprarch
 
 ```bash
 # Clone the repository
-git clone https://github.com/silvabyte/Audetic.git
-cd Audetic
+git clone https://github.com/silvabyte/wisprarch.git
+cd wisprarch
 
 # Build release version
 cargo build --release
 
 # Install binary
-sudo cp target/release/audetic /usr/local/bin/
-sudo chmod +x /usr/local/bin/audetic
+sudo cp target/release/wisprarch /usr/local/bin/
+sudo chmod +x /usr/local/bin/wisprarch
 ```
 
 ## Configuration
@@ -142,18 +142,18 @@ sudo chmod +x /usr/local/bin/audetic
 Create the configuration directory and file:
 
 ```bash
-mkdir -p ~/.config/audetic
+mkdir -p ~/.config/wisprarch
 ```
 
-Audetic will create a default config on first run, or you can create one manually:
+wisprarch will create a default config on first run, or you can create one manually:
 
-### Quick Start (Audetic API - Recommended)
+### Quick Start (wisprarch API - Recommended)
 
 Zero-config cloud transcription - no API key or local setup required:
 
 ```toml
 [whisper]
-provider = "audetic-api"  # Default: hosted service, no setup needed
+provider = "wisprarch-api"  # Default: hosted service, no setup needed
 language = "en"
 
 [wayland]
@@ -194,8 +194,8 @@ audio_feedback = true
 provider = "whisper-cpp"
 model = "large-v3-turbo"
 language = "en"
-command_path = "/home/user/.local/share/audetic/whisper/build/bin/whisper-cli"
-model_path = "/home/user/.local/share/audetic/whisper/models/ggml-large-v3-turbo-q5_1.bin"
+command_path = "/home/user/.local/share/wisprarch/whisper/build/bin/whisper-cli"
+model_path = "/home/user/.local/share/wisprarch/whisper/models/ggml-large-v3-turbo-q5_1.bin"
 
 [wayland]
 input_method = "ydotool"  # Recommended (auto-detected first)
@@ -215,16 +215,16 @@ Create a user service for automatic startup:
 mkdir -p ~/.config/systemd/user
 ```
 
-Create `~/.config/systemd/user/audetic.service`:
+Create `~/.config/systemd/user/wisprarch.service`:
 
 ```ini
 [Unit]
-Description=Audetic Voice Transcription Service
+Description=wisprarch Voice Transcription Service
 After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/audetic
+ExecStart=/usr/local/bin/wisprarch
 Restart=always
 RestartSec=5
 Environment="RUST_LOG=info"
@@ -239,7 +239,7 @@ Enable and start the service:
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now audetic.service
+systemctl --user enable --now wisprarch.service
 ```
 
 > **Audio groups:** User services cannot add supplemental groups the account does not already have. Most setups that use PipeWire/ALSA through the desktop stack work without any extra privileges. If you need direct ALSA device access, add yourself to the `audio` group (followed by a re-login) or, for `latest.sh --system`, add `SupplementaryGroups=audio` via a systemd drop-in.
@@ -249,12 +249,12 @@ systemctl --user enable --now audetic.service
 Add to your Hyprland config (`~/.config/hypr/hyprland.conf`):
 
 ```
-bindd = SUPER, R, Audetic, exec, curl -X POST http://127.0.0.1:3737/toggle
+bindd = SUPER, R, wisprarch, exec, curl -X POST http://127.0.0.1:3737/toggle
 ```
 
 For Omarchy users:
 ```
-bindd = SUPER, R, Audetic, exec, $terminal -e curl -X POST http://127.0.0.1:3737/toggle
+bindd = SUPER, R, wisprarch, exec, $terminal -e curl -X POST http://127.0.0.1:3737/toggle
 ```
 
 ## GNOME + Wayland Setup
@@ -293,10 +293,10 @@ source ~/.bashrc
 # Enable services
 systemctl --user daemon-reload
 systemctl --user enable --now ydotoold.service
-systemctl --user enable --now audetic.service
+systemctl --user enable --now wisprarch.service
 ```
 
-### 2. Configure Audetic for GNOME
+### 2. Configure wisprarch for GNOME
 
 ```toml
 [wayland]
@@ -313,24 +313,24 @@ input_method = "ydotool"  # Recommended (auto-detected first)
 
 ## Testing Installation
 
-1. **Test service**: `systemctl --user status audetic.service`
+1. **Test service**: `systemctl --user status wisprarch.service`
 2. **Test API**: `curl -X POST http://127.0.0.1:3737/toggle`
-3. **Test provider**: `audetic provider test` (validates transcription setup)
+3. **Test provider**: `wisprarch provider test` (validates transcription setup)
 4. **Test recording**: Press your configured keybind
-5. **Check logs**: `make logs` or `journalctl --user -u audetic.service -f`
+5. **Check logs**: `make logs` or `journalctl --user -u wisprarch.service -f`
 
 ## Troubleshooting
 
 ### Service fails to start
-- Check logs: `make logs` or `journalctl --user -u audetic.service -e`
+- Check logs: `make logs` or `journalctl --user -u wisprarch.service -e`
 - Check status: `make status`
-- Verify binary path: `which audetic`
-- Test config: `audetic --verbose`
+- Verify binary path: `which wisprarch`
+- Test config: `wisprarch --verbose`
 
 ### Recording doesn't work
 - Check microphone permissions
 - Verify audio device: `arecord -l`
-- Ensure the desired input device is set as the system default (Audetic uses whatever CPAL reports as default)
+- Ensure the desired input device is set as the system default (wisprarch uses whatever CPAL reports as default)
 
 ### Text injection fails
 - Verify ydotool service: `systemctl --user status ydotool.service`
@@ -349,64 +349,64 @@ input_method = "ydotool"  # Recommended (auto-detected first)
 
 ## Updating
 
-Audetic now includes two parallel update paths:
+wisprarch now includes two parallel update paths:
 
-1. **Background auto-updater**: runs inside the daemon, checks `https://install.audetic.ai/cli/version` every few hours, downloads new binaries into `~/.local/share/audetic/updates`, swaps them atomically, and restarts the service (unless `AUDETIC_DISABLE_AUTO_RESTART=1` is set). Auto-updates respect `~/.config/audetic/update_state.json` and can be disabled.
+1. **Background auto-updater**: runs inside the daemon, checks `https://install.wisprarch.dev/cli/version` every few hours, downloads new binaries into `~/.local/share/wisprarch/updates`, swaps them atomically, and restarts the service (unless `WISPRARCH_DISABLE_AUTO_RESTART=1` is set). Auto-updates respect `~/.config/wisprarch/update_state.json` and can be disabled.
 
 2. **Manual CLI control** via the built-in subcommand:
 
 ```bash
 # Show current vs remote version without installing
-audetic update --check
+wisprarch update --check
 
 # Force an immediate install (even if versions appear equal)
-audetic update --force
+wisprarch update --force
 
 # Switch channels for subsequent checks
-audetic update --channel beta
+wisprarch update --channel beta
 
 # Toggle background updates
-audetic update --disable
-audetic update --enable
+wisprarch update --disable
+wisprarch update --enable
 ```
 
 Because `latest.sh` is idempotent, you can also rerun it at any time to jump to a specific channel or repair a broken install:
 
 ```bash
-curl -fsSL https://install.audetic.ai/cli/latest.sh | bash -s -- --channel beta --clean
+curl -fsSL https://install.wisprarch.dev/cli/latest.sh | bash -s -- --channel beta --clean
 ```
 
 ## Uninstalling
 
-Remove Audetic with the dedicated uninstall script:
+Remove wisprarch with the dedicated uninstall script:
 
 ```bash
-curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash
+curl -fsSL https://install.wisprarch.dev/cli/uninstall.sh | bash
 ```
 
 ### Uninstall options
 
 ```bash
 # Preview what will be removed (no changes made)
-curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --dry-run
+curl -fsSL https://install.wisprarch.dev/cli/uninstall.sh | bash -s -- --dry-run
 
 # Skip confirmation prompt
-curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --yes
+curl -fsSL https://install.wisprarch.dev/cli/uninstall.sh | bash -s -- --yes
 
 # Keep your config and transcription history
-curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --keep-config --keep-database
+curl -fsSL https://install.wisprarch.dev/cli/uninstall.sh | bash -s -- --keep-config --keep-database
 
 # Also remove temp audio files from /tmp
-curl -fsSL https://install.audetic.ai/cli/uninstall.sh | bash -s -- --remove-temp
+curl -fsSL https://install.wisprarch.dev/cli/uninstall.sh | bash -s -- --remove-temp
 ```
 
 ### What gets removed
 
 By default, the uninstaller removes:
-- `/usr/local/bin/audetic` (CLI binary)
-- `/usr/local/bin/audetic-*.bak` (backup binaries from auto-updates)
-- `~/.config/systemd/user/audetic.service` (systemd unit)
-- `~/.config/audetic/` (config and update state)
-- `~/.local/share/audetic/` (database and update cache)
+- `/usr/local/bin/wisprarch` (CLI binary)
+- `/usr/local/bin/wisprarch-*.bak` (backup binaries from auto-updates)
+- `~/.config/systemd/user/wisprarch.service` (systemd unit)
+- `~/.config/wisprarch/` (config and update state)
+- `~/.local/share/wisprarch/` (database and update cache)
 
 Use `--keep-config`, `--keep-database`, or `--keep-updates` to preserve specific artifacts.

@@ -454,7 +454,7 @@ impl RecordingMachine {
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis();
-        PathBuf::from(format!("/tmp/audetic_{timestamp}.wav"))
+        PathBuf::from(format!("/tmp/wisprarch_{timestamp}.wav"))
     }
 }
 
