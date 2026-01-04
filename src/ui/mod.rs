@@ -1,4 +1,3 @@
-use crate::config::UiConfig;
 use anyhow::Result;
 use std::process::Command;
 use tracing::{debug, info, warn};
@@ -6,7 +5,6 @@ use tracing::{debug, info, warn};
 #[derive(Clone)]
 pub struct Indicator {
     audio_feedback_enabled: bool,
-    notification_color: String,
 }
 
 impl Default for Indicator {
@@ -19,14 +17,6 @@ impl Indicator {
     pub fn new() -> Self {
         Self {
             audio_feedback_enabled: true,
-            notification_color: "rgb(ff1744)".to_string(),
-        }
-    }
-
-    pub fn from_config(config: &UiConfig) -> Self {
-        Self {
-            audio_feedback_enabled: true,
-            notification_color: config.notification_color.clone(),
         }
     }
 
@@ -36,65 +26,25 @@ impl Indicator {
     }
 
     pub async fn show_recording(&self) -> Result<()> {
-        info!("Showing recording indicator");
-
-        if let Err(e) = self.hyprland_notify("󰻃 Recording...") {
-            debug!("Hyprland notification failed: {}", e);
-        }
-
-        // Play recording start sound
+        info!("Recording started");
         self.play_sound("start").await;
-
         Ok(())
     }
 
     pub async fn show_processing(&self) -> Result<()> {
-        info!("Showing processing indicator");
-
-        if let Err(e) = self.hyprland_notify("󰦖 Processing...") {
-            debug!("Hyprland notification failed: {}", e);
-        }
-
-        // Play recording stop sound
+        info!("Processing started");
         self.play_sound("stop").await;
-
         Ok(())
     }
 
     pub async fn show_complete(&self, text: &str) -> Result<()> {
-        info!("Showing completion indicator");
-
-        let preview = if text.len() > 50 {
-            format!("{}...", &text[..50])
-        } else {
-            text.to_string()
-        };
-
-        if let Err(e) = self.hyprland_notify(&format!("󰸞 {preview}")) {
-            debug!("Hyprland notification failed: {}", e);
-        }
-
-        // Play completion sound
+        info!("Transcription complete: {} chars", text.len());
         self.play_sound("complete").await;
-
         Ok(())
     }
 
     pub async fn show_error(&self, error: &str) -> Result<()> {
-        warn!("Showing error: {}", error);
-
-        if let Err(e) = self.hyprland_notify(&format!("Error: {error}")) {
-            debug!("Hyprland notification failed: {}", e);
-        }
-
-        Ok(())
-    }
-
-    fn hyprland_notify(&self, title: &str) -> Result<()> {
-        Command::new("hyprctl")
-            .args(["notify", "-1", "3000", &self.notification_color, title])
-            .output()?;
-
+        warn!("Error: {}", error);
         Ok(())
     }
 

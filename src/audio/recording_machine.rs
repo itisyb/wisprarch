@@ -49,13 +49,11 @@ pub struct CompletedJob {
 #[derive(Debug, Clone)]
 pub struct RecordingStatus {
     pub phase: RecordingPhase,
-    /// Current job ID (set when recording starts)
     pub current_job_id: Option<String>,
-    /// Current job options (set when recording starts)
     pub current_job_options: Option<JobOptions>,
-    /// Last successfully completed job
     pub last_completed_job: Option<CompletedJob>,
     pub last_error: Option<String>,
+    pub audio_level: f32,
 }
 
 impl Default for RecordingStatus {
@@ -66,6 +64,7 @@ impl Default for RecordingStatus {
             current_job_options: None,
             last_completed_job: None,
             last_error: None,
+            audio_level: 0.0,
         }
     }
 }
@@ -123,6 +122,10 @@ impl RecordingStatusHandle {
 
     pub async fn get_current_job_options(&self) -> Option<JobOptions> {
         self.inner.lock().await.current_job_options
+    }
+
+    pub async fn set_audio_level(&self, level: f32) {
+        self.inner.lock().await.audio_level = level;
     }
 }
 
@@ -301,8 +304,30 @@ impl RecordingMachine {
             warn!("Failed to show recording indicator: {}", e);
         }
 
-        let recorder = self.audio.lock().await;
-        recorder.start_recording().await
+        let audio_level_handle = {
+            let recorder = self.audio.lock().await;
+            recorder.start_recording().await?;
+            recorder.get_audio_level_handle()
+        };
+
+        let status = self.status.clone();
+        
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+                
+                let current_status = status.get().await;
+                if current_status.phase != RecordingPhase::Recording {
+                    status.set_audio_level(0.0).await;
+                    break;
+                }
+                
+                let level = *audio_level_handle.lock().unwrap();
+                status.set_audio_level(level).await;
+            }
+        });
+
+        Ok(())
     }
 
     async fn begin_processing(

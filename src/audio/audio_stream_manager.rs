@@ -22,6 +22,7 @@ pub struct AudioStreamManager {
     samples: Arc<Mutex<Vec<f32>>>,
     active_stream: Arc<Mutex<Option<cpal::Stream>>>,
     state: Arc<Mutex<RecordingState>>,
+    audio_level: Arc<Mutex<f32>>,
 }
 
 impl AudioStreamManager {
@@ -47,7 +48,17 @@ impl AudioStreamManager {
             samples: Arc::new(Mutex::new(Vec::new())),
             active_stream: Arc::new(Mutex::new(None)),
             state: Arc::new(Mutex::new(RecordingState::Idle)),
+            audio_level: Arc::new(Mutex::new(0.0)),
         })
+    }
+
+    /// Get current audio level (0.0 to 1.0)
+    pub fn get_audio_level(&self) -> f32 {
+        *self.audio_level.lock().unwrap()
+    }
+
+    pub fn get_audio_level_handle(&self) -> Arc<Mutex<f32>> {
+        Arc::clone(&self.audio_level)
     }
 
     /// Start recording audio, properly managing stream lifecycle
@@ -77,6 +88,7 @@ impl AudioStreamManager {
         debug!("Creating new audio stream");
 
         let samples_clone = self.samples.clone();
+        let level_clone = self.audio_level.clone();
         let err_fn = |err| error!("Audio stream error: {}", err);
 
         let stream = self.device.build_input_stream(
@@ -84,6 +96,13 @@ impl AudioStreamManager {
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 if let Ok(mut samples) = samples_clone.lock() {
                     samples.extend_from_slice(data);
+                }
+                
+                let rms: f32 = (data.iter().map(|s| s * s).sum::<f32>() / data.len() as f32).sqrt();
+                let level = (rms * 3.0).min(1.0);
+                
+                if let Ok(mut audio_level) = level_clone.lock() {
+                    *audio_level = *audio_level * 0.7 + level * 0.3;
                 }
             },
             err_fn,

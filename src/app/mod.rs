@@ -30,8 +30,7 @@ pub async fn run_service() -> Result<()> {
         Some(&config.wayland.input_method),
         config.behavior.preserve_clipboard,
     )?;
-    let indicator =
-        Indicator::from_config(&config.ui).with_audio_feedback(config.behavior.audio_feedback);
+    let indicator = Indicator::new().with_audio_feedback(config.behavior.audio_feedback);
 
     let status_handle = RecordingStatusHandle::default();
     let recording_machine = RecordingMachine::new(

@@ -147,13 +147,6 @@ async fn recording_status(
     }))
 }
 
-/// Generates a response formatted for Waybar integration.
-///
-/// Maps recording phases to appropriate Waybar display elements:
-/// - Idle: Shows configured idle text and tooltip
-/// - Recording: Shows configured recording text and tooltip
-/// - Processing: Shows processing icon
-/// - Error: Shows error icon with error message
 fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> Value {
     let (text, class, tooltip) = match status.phase {
         RecordingPhase::Idle => (
@@ -161,15 +154,18 @@ fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> 
             "wisprarch-idle".to_string(),
             config.idle_tooltip.clone(),
         ),
-        RecordingPhase::Recording => (
-            config.recording_text.clone(),
-            "wisprarch-recording".to_string(),
-            config.recording_tooltip.clone(),
-        ),
+        RecordingPhase::Recording => {
+            let waveform = generate_waveform(status.audio_level);
+            (
+                waveform,
+                "wisprarch-recording".to_string(),
+                config.recording_tooltip.clone(),
+            )
+        }
         RecordingPhase::Processing => (
-            "󰦖".to_string(),
+            "󰦖 ".to_string(),
             "wisprarch-processing".to_string(),
-            "Processing transcription".to_string(),
+            "Processing...".to_string(),
         ),
         RecordingPhase::Error => (
             "".to_string(),
@@ -177,7 +173,7 @@ fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> 
             status
                 .last_error
                 .clone()
-                .unwrap_or_else(|| "Recording error".to_string()),
+                .unwrap_or_else(|| "Error".to_string()),
         ),
     };
 
@@ -186,4 +182,24 @@ fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> 
         "class": class,
         "tooltip": tooltip
     })
+}
+
+fn generate_waveform(level: f32) -> String {
+    let bars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+    
+    let base_idx = (level * 7.0) as usize;
+    let variation = (std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() % 1000) as f32 / 1000.0;
+    
+    let mut waveform = String::from("󰍬 ");
+    
+    for i in 0..5 {
+        let phase = (i as f32 * 0.4 + variation * 6.28).sin() * 0.5 + 0.5;
+        let idx = ((base_idx as f32 * 0.6 + phase * 3.0) as usize).min(7);
+        waveform.push_str(bars[idx]);
+    }
+    
+    waveform
 }

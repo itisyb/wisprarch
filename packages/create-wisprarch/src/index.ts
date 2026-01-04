@@ -54,9 +54,17 @@ const PROVIDERS = [
 
 const KEYBIND_PRESETS = [
 	{ value: "super-r", label: "Super + R", keys: { mod: "SUPER", key: "R" } },
-	{ value: "super-shift-r", label: "Super + Shift + R", keys: { mod: "SUPER SHIFT", key: "R" } },
+	{
+		value: "super-shift-r",
+		label: "Super + Shift + R",
+		keys: { mod: "SUPER SHIFT", key: "R" },
+	},
 	{ value: "super-v", label: "Super + V", keys: { mod: "SUPER", key: "V" } },
-	{ value: "ctrl-shift-space", label: "Ctrl + Shift + Space", keys: { mod: "CTRL SHIFT", key: "SPACE" } },
+	{
+		value: "ctrl-shift-space",
+		label: "Ctrl + Shift + Space",
+		keys: { mod: "CTRL SHIFT", key: "SPACE" },
+	},
 	{ value: "custom", label: "Custom keybind...", keys: null },
 ] as const;
 
@@ -136,13 +144,15 @@ async function main() {
 
 	if (config.waybarIntegration) {
 		p.log.info("Waybar integration enabled. Add this to your waybar config:");
-		console.log(pc.dim(`
+		console.log(
+			pc.dim(`
 "custom/wisprarch": {
     "exec": "curl -s http://127.0.0.1:3737/waybar",
     "return-type": "json",
     "interval": 1,
     "on-click": "curl -X POST http://127.0.0.1:3737/toggle"
-}`));
+}`),
+		);
 	}
 
 	p.note(
@@ -152,7 +162,7 @@ ${pc.cyan("Test keybind:")} Press ${pc.bold(config.keybind.mod + " + " + config.
 
 ${pc.dim("Config file:")} ~/.config/wisprarch/config.toml
 ${pc.dim("Logs:")} journalctl --user -u wisprarch -f`,
-		"Next steps"
+		"Next steps",
 	);
 
 	p.outro(pc.green("✨ WisprArch installed successfully!"));
@@ -209,7 +219,11 @@ async function runPrompts(): Promise<Config> {
 			{ value: "zh", label: "Chinese" },
 			{ value: "ja", label: "Japanese" },
 			{ value: "ko", label: "Korean" },
-			{ value: "auto", label: "Auto-detect", hint: "Let the model detect the language" },
+			{
+				value: "auto",
+				label: "Auto-detect",
+				hint: "Let the model detect the language",
+			},
 		],
 	});
 
@@ -297,7 +311,7 @@ async function runPrompts(): Promise<Config> {
 				p.cancel("Installation cancelled.");
 				process.exit(0);
 			},
-		}
+		},
 	);
 
 	const model = getModelForProvider(provider as string);
@@ -341,9 +355,19 @@ async function checkRequirements(): Promise<RequirementResult> {
 	const missing: { name: string; message: string }[] = [];
 
 	const tools = [
-		{ name: "wtype", message: "Install with: sudo pacman -S wtype (for auto-paste)" },
-		{ name: "ydotool", message: "Install with: sudo pacman -S ydotool (alternative for auto-paste)" },
-		{ name: "wl-copy", message: "Install with: sudo pacman -S wl-clipboard (for clipboard)" },
+		{
+			name: "wtype",
+			message: "Install with: sudo pacman -S wtype (for auto-paste)",
+		},
+		{
+			name: "ydotool",
+			message:
+				"Install with: sudo pacman -S ydotool (alternative for auto-paste)",
+		},
+		{
+			name: "wl-copy",
+			message: "Install with: sudo pacman -S wl-clipboard (for clipboard)",
+		},
 		{ name: "curl", message: "Install with: sudo pacman -S curl" },
 	];
 
@@ -369,10 +393,31 @@ function commandExists(cmd: string): boolean {
 	}
 }
 
-async function installBinary(spinner: ReturnType<typeof p.spinner>): Promise<void> {
+async function installBinary(
+	spinner: ReturnType<typeof p.spinner>,
+): Promise<void> {
 	const installDir = "/usr/local/bin";
+	const localBinDir = join(homedir(), ".local", "bin");
 	const binaryName = "wisprarch";
-	const binaryPath = join(installDir, binaryName);
+
+	if (commandExists("wisprarch")) {
+		p.log.success("wisprarch binary already installed");
+		return;
+	}
+
+	const possibleLocalPaths = [
+		join(process.cwd(), "target", "release", "wisprarch"),
+		join(process.cwd(), "..", "target", "release", "wisprarch"),
+		join(process.cwd(), "..", "..", "target", "release", "wisprarch"),
+	];
+
+	for (const localBinary of possibleLocalPaths) {
+		if (existsSync(localBinary)) {
+			spinner.message("Found local build, installing...");
+			await installBinaryFile(localBinary, installDir, localBinDir, binaryName);
+			return;
+		}
+	}
 
 	const osType = platform();
 	const archType = arch();
@@ -392,8 +437,9 @@ async function installBinary(spinner: ReturnType<typeof p.spinner>): Promise<voi
 
 	spinner.message("Downloading latest release...");
 
-	const releaseUrl = `https://github.com/wisprarch/wisprarch/releases/latest/download/wisprarch-${targetId}.tar.gz`;
+	const releaseUrl = `https://github.com/itisyb/wisprarch/releases/latest/download/wisprarch-${targetId}.tar.gz`;
 	const tempDir = join(homedir(), ".cache", "wisprarch-install");
+	const repoDir = join(tempDir, "wisprarch-repo");
 
 	mkdirSync(tempDir, { recursive: true });
 
@@ -414,31 +460,103 @@ async function installBinary(spinner: ReturnType<typeof p.spinner>): Promise<voi
 		spinner.message("Installing binary (may require sudo)...");
 
 		const extractedBinary = join(tempDir, "wisprarch");
-		if (existsSync(extractedBinary)) {
-			try {
-				execSync(`sudo cp "${extractedBinary}" "${binaryPath}"`, { stdio: "inherit" });
-				execSync(`sudo chmod +x "${binaryPath}"`, { stdio: "ignore" });
-			} catch {
-				execSync(`cp "${extractedBinary}" "${join(homedir(), ".local", "bin", binaryName)}"`, {
-					stdio: "ignore",
-				});
-				p.log.warn(`Installed to ~/.local/bin (add to PATH if needed)`);
-			}
-		}
+		await installBinaryFile(
+			extractedBinary,
+			installDir,
+			localBinDir,
+			binaryName,
+		);
 
 		execSync(`rm -rf "${tempDir}"`, { stdio: "ignore" });
 	} catch (error) {
 		p.log.warn("Could not download pre-built binary. Building from source...");
-		spinner.message("Building from source (this may take a few minutes)...");
+
+		if (!commandExists("git")) {
+			p.log.error("Git not found. Install with: sudo pacman -S git");
+			throw new Error("Git is required");
+		}
+
+		if (!commandExists("cargo")) {
+			p.log.error("Rust/Cargo not found.");
+			console.log(
+				pc.cyan(
+					"  Install Rust: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
+				),
+			);
+			console.log(pc.dim("  Then restart your terminal and try again."));
+			throw new Error("Cargo is required to build from source");
+		}
+
+		spinner.message("Cloning repository...");
+		execSync(`rm -rf "${repoDir}"`, { stdio: "ignore" });
 
 		try {
-			execSync("cargo build --release", { stdio: "ignore", cwd: process.cwd() });
-			const builtBinary = join(process.cwd(), "target", "release", "wisprarch");
-			execSync(`sudo cp "${builtBinary}" "${binaryPath}"`, { stdio: "inherit" });
-			execSync(`sudo chmod +x "${binaryPath}"`, { stdio: "ignore" });
-		} catch (buildError) {
-			throw new Error("Failed to install binary. Please build manually with: cargo build --release");
+			execSync(
+				`git clone --depth 1 https://github.com/itisyb/wisprarch.git "${repoDir}"`,
+				{
+					stdio: "pipe",
+				},
+			);
+		} catch (cloneErr: any) {
+			p.log.error(`Clone failed: ${cloneErr.message}`);
+			throw new Error(
+				"Failed to clone repository. Check your internet connection.",
+			);
 		}
+
+		spinner.message("Building from source (this may take 2-3 minutes)...");
+
+		try {
+			execSync("cargo build --release", {
+				stdio: "pipe",
+				cwd: repoDir,
+				timeout: 600000,
+			});
+
+			const builtBinary = join(repoDir, "target", "release", "wisprarch");
+			await installBinaryFile(builtBinary, installDir, localBinDir, binaryName);
+
+			execSync(`rm -rf "${tempDir}"`, { stdio: "ignore" });
+		} catch (buildError: any) {
+			p.log.error(`Build failed: ${buildError.message}`);
+			console.log();
+			console.log(pc.yellow("Try manually:"));
+			console.log(
+				pc.dim(`  git clone https://github.com/itisyb/wisprarch.git`),
+			);
+			console.log(pc.dim(`  cd wisprarch && cargo build --release`));
+			console.log(pc.dim(`  sudo cp target/release/wisprarch /usr/local/bin/`));
+			throw new Error("Build failed - see errors above");
+		}
+	}
+}
+
+async function installBinaryFile(
+	sourcePath: string,
+	systemDir: string,
+	userDir: string,
+	binaryName: string,
+): Promise<void> {
+	if (!existsSync(sourcePath)) {
+		throw new Error(`Binary not found at ${sourcePath}`);
+	}
+
+	try {
+		execSync(`sudo cp "${sourcePath}" "${join(systemDir, binaryName)}"`, {
+			stdio: "pipe",
+		});
+		execSync(`sudo chmod +x "${join(systemDir, binaryName)}"`, {
+			stdio: "ignore",
+		});
+		p.log.success(`Installed to ${systemDir}/${binaryName}`);
+	} catch {
+		mkdirSync(userDir, { recursive: true });
+		execSync(`cp "${sourcePath}" "${join(userDir, binaryName)}"`, {
+			stdio: "ignore",
+		});
+		execSync(`chmod +x "${join(userDir, binaryName)}"`, { stdio: "ignore" });
+		p.log.warn(`Installed to ${userDir}/${binaryName}`);
+		p.log.info(`Add to PATH: export PATH="$HOME/.local/bin:$PATH"`);
 	}
 }
 
