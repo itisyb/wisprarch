@@ -58,7 +58,7 @@ fn play_file(path: &str) -> bool {
 }
 
 fn generate_start_sound() -> Vec<i16> {
-    let duration_ms = 120;
+    let duration_ms = 60;
     let num_samples = (SAMPLE_RATE as usize * duration_ms) / 1000;
     let mut samples = Vec::with_capacity(num_samples);
 
@@ -66,15 +66,18 @@ fn generate_start_sound() -> Vec<i16> {
         let t = i as f32 / SAMPLE_RATE as f32;
         let progress = i as f32 / num_samples as f32;
 
-        let freq = 600.0 + 400.0 * progress;
+        let envelope = (-progress * 12.0).exp();
 
-        let envelope = (progress * PI).sin();
+        let freq = 480.0;
+        let tone = (2.0 * PI * freq * t).sin();
 
-        let fundamental = (2.0 * PI * freq * t).sin();
-        let harmonic2 = 0.3 * (2.0 * PI * freq * 2.0 * t).sin();
-        let harmonic3 = 0.15 * (2.0 * PI * freq * 3.0 * t).sin();
+        let click = if progress < 0.05 {
+            1.0 - progress * 20.0
+        } else {
+            0.0
+        };
 
-        let sample = (fundamental + harmonic2 + harmonic3) * envelope * 0.25;
+        let sample = (tone * 0.6 + click * 0.4) * envelope * 0.35;
         samples.push((sample * 32767.0) as i16);
     }
 
