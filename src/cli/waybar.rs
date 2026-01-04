@@ -112,47 +112,34 @@ fn find_waybar_config() -> Result<PathBuf> {
 }
 
 fn inject_module(content: &str) -> Result<String> {
-    let mut result = String::new();
+    let mut lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
     let mut added_to_modules = false;
     let mut added_definition = false;
-    let mut brace_depth = 0;
-    let mut in_modules_right = false;
-    let mut i = 0;
 
-    while i < content.len() {
-        let remaining = &content[i..];
-
-        if remaining.starts_with("\"modules-right\"") || remaining.starts_with("\"modules-center\"")
+    for line in &mut lines {
+        if !added_to_modules
+            && (line.contains("\"modules-right\"") || line.contains("\"modules-center\""))
         {
-            in_modules_right = true;
-        }
-
-        if in_modules_right && remaining.starts_with('[') && !added_to_modules {
-            result.push('[');
-            result.push_str("\n    \"custom/wisprarch\",");
-            added_to_modules = true;
-            in_modules_right = false;
-            i += 1;
-            continue;
-        }
-
-        let c = content.chars().nth(i).unwrap();
-
-        if c == '{' {
-            brace_depth += 1;
-        } else if c == '}' {
-            brace_depth -= 1;
-
-            if brace_depth == 0 && !added_definition {
-                result.push(',');
-                result.push_str(WISPRARCH_MODULE);
-                result.push('\n');
-                added_definition = true;
+            if let Some(bracket_pos) = line.find('[') {
+                let (before, after) = line.split_at(bracket_pos + 1);
+                *line = format!("{}\"custom/wisprarch\", {}", before, after.trim_start());
+                added_to_modules = true;
             }
         }
+    }
 
-        result.push(c);
-        i += 1;
+    let mut result = lines.join("\n");
+
+    if let Some(last_brace) = result.rfind('}') {
+        let before = &result[..last_brace];
+        let before = before.trim_end();
+        let before = before.trim_end_matches(',');
+        result = format!("{},{}\n}}\n", before, WISPRARCH_MODULE);
+        added_definition = true;
+    }
+
+    if !added_to_modules || !added_definition {
+        anyhow::bail!("Could not parse Waybar config. Please add manually.");
     }
 
     Ok(result)
