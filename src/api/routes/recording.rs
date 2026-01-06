@@ -191,22 +191,27 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
     })
 }
 
-/// Generate a compact audio visualizer from frequency bands.
+/// Generate a sweeping skeleton loader visualizer.
 ///
-/// Uses braille dots for a slim, btop-style look.
+/// Creates a left-to-right sweeping animation based on audio level.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
-    // Braille-style vertical bars (4 heights)
-    const BARS: [&str; 4] = ["⡀", "⡄", "⡆", "⡇"];
+    // Skeleton/loader characters that sweep left to right
+    const FRAMES: [&str; 8] = [
+        "▏▏▏▏▏▏▏▏", // 1/8 filled
+        "▎▏▏▏▏▏▏▏", // 2/8 filled
+        "▎▎▏▏▏▏▏▏", // 3/8 filled
+        "▎▎▎▏▏▏▏▏", // 4/8 filled
+        "▎▎▎▎▏▏▏▏", // 5/8 filled
+        "▎▎▎▎▎▏▏▏", // 6/8 filled
+        "▎▎▎▎▎▎▏▏", // 7/8 filled
+        "▎▎▎▎▎▎▎▎", // 8/8 filled (full)
+    ];
 
-    let mut visualizer = String::new();
+    // Use overall audio level to drive the sweep
+    let overall_level = bands.iter().sum::<f32>() / bands.len() as f32;
+    let frame_idx = ((overall_level * 8.0 * 2.0) as usize).min(7); // Boost sensitivity
 
-    // Use all 8 bands for more detail
-    for &level in bands.iter() {
-        let bar_idx = ((level * 4.0) as usize).min(3);
-        visualizer.push_str(BARS[bar_idx]);
-    }
-
-    visualizer
+    FRAMES[frame_idx].to_string()
 }
 
 #[derive(Debug, serde::Deserialize)]
