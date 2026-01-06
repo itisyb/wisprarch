@@ -18,6 +18,7 @@ tokio = { version = "1.35", features = ["full"] }
 # Audio recording
 cpal = "0.15"
 hound = "3.5"
+rustfft = "6.2"
 
 # Configuration
 serde = { version = "1.0", features = ["derive"] }

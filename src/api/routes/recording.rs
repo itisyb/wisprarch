@@ -5,7 +5,7 @@
 //! - Getting recording status (GET /status)
 //! - Switching input method (POST /input-method, GET /input-method)
 
-use crate::audio::{JobOptions, RecordingPhase, RecordingStatus, RecordingStatusHandle};
+use crate::audio::{JobOptions, RecordingPhase, RecordingStatus, RecordingStatusHandle, NUM_BANDS};
 use crate::config::WaybarConfig;
 use crate::text_io::{InjectionMethod, TextIoService};
 use axum::{
@@ -149,31 +149,33 @@ async fn recording_status(
         "job_id": status.current_job_id,
         "last_completed_job": last_completed_job,
         "last_error": status.last_error,
+        "audio_level": status.audio_level,
+        "frequency_bands": status.frequency_bands,
     }))
 }
 
-fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> Value {
+fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) -> Value {
     let (text, class, tooltip) = match status.phase {
         RecordingPhase::Idle => (
-            config.idle_text.clone(),
+            String::new(), // Nothing when idle
             "wisprarch-idle".to_string(),
-            config.idle_tooltip.clone(),
+            "Press Super+R to record".to_string(),
         ),
         RecordingPhase::Recording => {
-            let waveform = generate_waveform(status.audio_level);
+            let visualizer = generate_visualizer(&status.frequency_bands);
             (
-                waveform,
+                visualizer,
                 "wisprarch-recording".to_string(),
-                config.recording_tooltip.clone(),
+                "Recording... Press Super+R to stop".to_string(),
             )
         }
         RecordingPhase::Processing => (
-            "󰦖 ".to_string(),
+            "⏳".to_string(),
             "wisprarch-processing".to_string(),
             "Processing...".to_string(),
         ),
         RecordingPhase::Error => (
-            "".to_string(),
+            "❌".to_string(),
             "wisprarch-error".to_string(),
             status
                 .last_error
@@ -189,24 +191,22 @@ fn generate_waybar_response(status: &RecordingStatus, config: &WaybarConfig) -> 
     })
 }
 
-fn generate_waveform(level: f32) -> String {
-    let bars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
-    
-    let base_idx = (level * 7.0) as usize;
-    let variation = (std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis() % 1000) as f32 / 1000.0;
-    
-    let mut waveform = String::from("󰍬 ");
-    
-    for i in 0..5 {
-        let phase = (i as f32 * 0.4 + variation * std::f32::consts::TAU).sin() * 0.5 + 0.5;
-        let idx = ((base_idx as f32 * 0.6 + phase * 3.0) as usize).min(7);
-        waveform.push_str(bars[idx]);
+/// Generate a compact audio visualizer from frequency bands.
+///
+/// Uses braille dots for a slim, btop-style look.
+fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
+    // Braille-style vertical bars (4 heights)
+    const BARS: [&str; 4] = ["⡀", "⡄", "⡆", "⡇"];
+
+    let mut visualizer = String::new();
+
+    // Use all 8 bands for more detail
+    for &level in bands.iter() {
+        let bar_idx = ((level * 4.0) as usize).min(3);
+        visualizer.push_str(BARS[bar_idx]);
     }
-    
-    waveform
+
+    visualizer
 }
 
 #[derive(Debug, serde::Deserialize)]

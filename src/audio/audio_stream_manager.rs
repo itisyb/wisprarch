@@ -1,5 +1,6 @@
 #![allow(clippy::arc_with_non_send_sync)]
 
+use crate::audio::audio_analyzer::{AudioAnalyzerHandle, NUM_BANDS};
 use anyhow::{Context, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use hound::{WavSpec, WavWriter};
@@ -23,6 +24,8 @@ pub struct AudioStreamManager {
     active_stream: Arc<Mutex<Option<cpal::Stream>>>,
     state: Arc<Mutex<RecordingState>>,
     audio_level: Arc<Mutex<f32>>,
+    /// FFT-based audio analyzer for frequency band visualization.
+    analyzer: AudioAnalyzerHandle,
 }
 
 impl AudioStreamManager {
@@ -36,9 +39,10 @@ impl AudioStreamManager {
         info!("Using audio device: {}", device.name()?);
 
         let _config = device.default_input_config()?;
+        let sample_rate = 16000; // Whisper optimal
         let config = cpal::StreamConfig {
             channels: 1,
-            sample_rate: cpal::SampleRate(16000), // Whisper optimal
+            sample_rate: cpal::SampleRate(sample_rate),
             buffer_size: cpal::BufferSize::Default,
         };
 
@@ -49,16 +53,28 @@ impl AudioStreamManager {
             active_stream: Arc::new(Mutex::new(None)),
             state: Arc::new(Mutex::new(RecordingState::Idle)),
             audio_level: Arc::new(Mutex::new(0.0)),
+            analyzer: AudioAnalyzerHandle::new(sample_rate),
         })
     }
 
     /// Get current audio level (0.0 to 1.0)
     pub fn get_audio_level(&self) -> f32 {
-        *self.audio_level.lock().unwrap()
+        self.analyzer.get_audio_level()
     }
 
     pub fn get_audio_level_handle(&self) -> Arc<Mutex<f32>> {
         Arc::clone(&self.audio_level)
+    }
+
+    /// Get current frequency band levels for visualization.
+    /// Returns array of NUM_BANDS values, each 0.0 to 1.0.
+    pub fn get_frequency_bands(&self) -> [f32; NUM_BANDS] {
+        self.analyzer.get_bands()
+    }
+
+    /// Get handle to the audio analyzer for sharing between threads.
+    pub fn get_analyzer_handle(&self) -> AudioAnalyzerHandle {
+        self.analyzer.clone()
     }
 
     /// Start recording audio, properly managing stream lifecycle
@@ -87,23 +103,23 @@ impl AudioStreamManager {
 
         debug!("Creating new audio stream");
 
+        // Reset analyzer state for new recording
+        self.analyzer.reset();
+
         let samples_clone = self.samples.clone();
-        let level_clone = self.audio_level.clone();
+        let analyzer_clone = self.analyzer.clone();
         let err_fn = |err| error!("Audio stream error: {}", err);
 
         let stream = self.device.build_input_stream(
             &self.config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
+                // Store samples for WAV recording
                 if let Ok(mut samples) = samples_clone.lock() {
                     samples.extend_from_slice(data);
                 }
-                
-                let rms: f32 = (data.iter().map(|s| s * s).sum::<f32>() / data.len() as f32).sqrt();
-                let level = (rms * 3.0).min(1.0);
-                
-                if let Ok(mut audio_level) = level_clone.lock() {
-                    *audio_level = *audio_level * 0.7 + level * 0.3;
-                }
+
+                // Process through FFT analyzer for frequency bands
+                analyzer_clone.process_samples(data);
             },
             err_fn,
             None,

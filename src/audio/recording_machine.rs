@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
+use crate::audio::audio_analyzer::NUM_BANDS;
 use crate::audio::AudioStreamManager;
 use crate::db::{self, VoiceToTextData, Workflow, WorkflowData, WorkflowType};
 use crate::text_io::TextIoService;
@@ -54,6 +55,8 @@ pub struct RecordingStatus {
     pub last_completed_job: Option<CompletedJob>,
     pub last_error: Option<String>,
     pub audio_level: f32,
+    /// Frequency band levels for visualizer (0.0 to 1.0 each).
+    pub frequency_bands: [f32; NUM_BANDS],
 }
 
 impl Default for RecordingStatus {
@@ -65,6 +68,7 @@ impl Default for RecordingStatus {
             last_completed_job: None,
             last_error: None,
             audio_level: 0.0,
+            frequency_bands: [0.0; NUM_BANDS],
         }
     }
 }
@@ -126,6 +130,18 @@ impl RecordingStatusHandle {
 
     pub async fn set_audio_level(&self, level: f32) {
         self.inner.lock().await.audio_level = level;
+    }
+
+    /// Update frequency band levels for visualizer.
+    pub async fn set_frequency_bands(&self, bands: [f32; NUM_BANDS]) {
+        self.inner.lock().await.frequency_bands = bands;
+    }
+
+    /// Update both audio level and frequency bands atomically.
+    pub async fn set_audio_visualization(&self, level: f32, bands: [f32; NUM_BANDS]) {
+        let mut status = self.inner.lock().await;
+        status.audio_level = level;
+        status.frequency_bands = bands;
     }
 }
 
@@ -304,26 +320,30 @@ impl RecordingMachine {
             warn!("Failed to show recording indicator: {}", e);
         }
 
-        let audio_level_handle = {
+        let analyzer_handle = {
             let recorder = self.audio.lock().await;
             recorder.start_recording().await?;
-            recorder.get_audio_level_handle()
+            recorder.get_analyzer_handle()
         };
 
         let status = self.status.clone();
-        
+
+        // Spawn task to continuously update audio visualization data
         tokio::spawn(async move {
             loop {
-                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-                
+                tokio::time::sleep(tokio::time::Duration::from_millis(33)).await; // ~30fps
+
                 let current_status = status.get().await;
                 if current_status.phase != RecordingPhase::Recording {
-                    status.set_audio_level(0.0).await;
+                    // Reset visualization when not recording
+                    status.set_audio_visualization(0.0, [0.0; NUM_BANDS]).await;
                     break;
                 }
-                
-                let level = *audio_level_handle.lock().unwrap();
-                status.set_audio_level(level).await;
+
+                // Get audio level and frequency bands from analyzer
+                let level = analyzer_handle.get_audio_level();
+                let bands = analyzer_handle.get_bands();
+                status.set_audio_visualization(level, bands).await;
             }
         });
 
