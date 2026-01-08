@@ -16,15 +16,10 @@ struct TextIoInner {
     clipboard: Mutex<Option<Clipboard>>,
     preserve_previous: bool,
     injection_method: RwLock<InjectionMethod>,
-    paste_shortcut: String,
 }
 
 impl TextIoService {
-    pub fn new(
-        preferred_method: Option<&str>,
-        preserve_previous: bool,
-        paste_shortcut: String,
-    ) -> Result<Self> {
+    pub fn new(preferred_method: Option<&str>, preserve_previous: bool) -> Result<Self> {
         let clipboard = match Clipboard::new() {
             Ok(cb) => Some(cb),
             Err(err) => {
@@ -42,7 +37,6 @@ impl TextIoService {
                 clipboard: Mutex::new(clipboard),
                 preserve_previous,
                 injection_method: RwLock::new(injection_method),
-                paste_shortcut,
             }),
         })
     }
@@ -222,124 +216,53 @@ impl TextIoService {
     }
 
     async fn simulate_paste(&self) -> Result<()> {
-        info!(
-            "Simulating paste from clipboard using shortcut: {}",
-            self.inner.paste_shortcut
-        );
+        info!("Simulating paste from clipboard");
 
-        let shortcut = &self.inner.paste_shortcut;
+        // Small delay to let modifier keys from the trigger shortcut be released
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
 
-        // Parse shortcut like "super+v" or "ctrl+v"
-        let parts: Vec<&str> = shortcut.split('+').collect();
-        if parts.len() != 2 {
-            warn!(
-                "Invalid paste shortcut format: {}, falling back to ctrl+v",
-                shortcut
-            );
-            return self.fallback_paste().await;
+        // Best approach: read clipboard and type it directly with wtype
+        // This avoids all the modifier key issues with simulating paste shortcuts
+        if which("wtype").is_ok() && which("wl-paste").is_ok() {
+            if let Ok(clip_output) = Command::new("wl-paste").arg("--no-newline").output() {
+                if clip_output.status.success() {
+                    let text = String::from_utf8_lossy(&clip_output.stdout);
+                    if !text.is_empty() {
+                        if let Ok(output) =
+                            Command::new("wtype").arg("--").arg(text.as_ref()).output()
+                        {
+                            if output.status.success() {
+                                debug!("Successfully typed clipboard content with wtype");
+                                return Ok(());
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        let mod_key = parts[0].to_lowercase();
-        let key = parts[1].to_lowercase();
-
+        // ydotool fallback: Super(125) + V(47)
         if which("ydotool").is_ok() {
-            let key_codes = self.shortcut_to_ydotool_codes(&mod_key, &key);
-            if let Some(codes) = key_codes {
-                let mut args = vec!["key"];
-                args.extend(codes.iter().map(|s| s.as_str()));
-                if let Ok(output) = Command::new("ydotool").args(&args).output() {
-                    if output.status.success() {
-                        debug!("Successfully pasted with ydotool using {}", shortcut);
-                        return Ok(());
-                    }
-                }
-            }
-        }
-
-        if which("wtype").is_ok() {
-            let args = self.shortcut_to_wtype_args(&mod_key, &key);
-            if let Some(args) = args {
-                if let Ok(output) = Command::new("wtype").args(&args).output() {
-                    if output.status.success() {
-                        debug!("Successfully pasted with wtype using {}", shortcut);
-                        return Ok(());
-                    } else {
-                        debug!("wtype paste failed, trying other methods");
-                    }
-                }
-            }
-        }
-
-        if which("xdotool").is_ok() {
-            let key_combo = format!("{}+{}", mod_key, key);
-            if let Ok(output) = Command::new("xdotool").args(["key", &key_combo]).output() {
+            if let Ok(output) = Command::new("ydotool")
+                .args(["key", "125:1", "47:1", "47:0", "125:0"])
+                .output()
+            {
                 if output.status.success() {
-                    debug!("Successfully pasted with xdotool using {}", shortcut);
+                    debug!("Successfully pasted with ydotool (Super+V)");
                     return Ok(());
                 }
             }
         }
 
-        // Fallback to default methods
-        self.fallback_paste().await
-    }
-
-    fn shortcut_to_ydotool_codes(&self, mod_key: &str, key: &str) -> Option<Vec<String>> {
-        let mod_code = match mod_key {
-            "super" | "meta" => "125",  // Left Meta
-            "ctrl" | "control" => "29", // Left Control
-            "alt" => "56",              // Left Alt
-            "shift" => "42",            // Left Shift
-            _ => return None,
-        };
-
-        let key_code = match key {
-            "v" => "47",       // V
-            "insert" => "110", // Insert
-            _ => return None,
-        };
-
-        Some(vec![
-            format!("{}:1", mod_code),
-            format!("{}:1", key_code),
-            format!("{}:0", key_code),
-            format!("{}:0", mod_code),
-        ])
-    }
-
-    fn shortcut_to_wtype_args(&self, mod_key: &str, key: &str) -> Option<Vec<String>> {
-        let mod_flag = match mod_key {
-            "super" | "meta" => "super",
-            "ctrl" | "control" => "ctrl",
-            "alt" => "alt",
-            "shift" => "shift",
-            _ => return None,
-        };
-
-        match key {
-            "v" => Some(vec![
-                "-M".to_string(),
-                mod_flag.to_string(),
-                "-P".to_string(),
-                "v".to_string(),
-                "-m".to_string(),
-                mod_flag.to_string(),
-                "-p".to_string(),
-                "v".to_string(),
-            ]),
-            "insert" => Some(vec![
-                "-M".to_string(),
-                mod_flag.to_string(),
-                "-k".to_string(),
-                "insert".to_string(),
-                "-m".to_string(),
-                mod_flag.to_string(),
-            ]),
-            _ => None,
+        if which("xdotool").is_ok() {
+            if let Ok(output) = Command::new("xdotool").args(["key", "super+v"]).output() {
+                if output.status.success() {
+                    debug!("Successfully pasted with xdotool (Super+V)");
+                    return Ok(());
+                }
+            }
         }
-    }
 
-    async fn fallback_paste(&self) -> Result<()> {
         if let Ok(desktop) = std::env::var("XDG_CURRENT_DESKTOP") {
             if desktop == "KDE" {
                 if let Ok(output) = Command::new("qdbus")

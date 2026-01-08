@@ -53,7 +53,6 @@ pub struct WaybarConfig {
 #[serde(default)]
 pub struct WaylandConfig {
     pub input_method: String,
-    pub paste_shortcut: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -109,7 +108,6 @@ impl Default for WaylandConfig {
     fn default() -> Self {
         Self {
             input_method: "clipboard".to_string(),
-            paste_shortcut: "super+v".to_string(),
         }
     }
 }

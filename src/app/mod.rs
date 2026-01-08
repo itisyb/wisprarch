@@ -29,7 +29,6 @@ pub async fn run_service() -> Result<()> {
     let text_io = TextIoService::new(
         Some(&config.wayland.input_method),
         config.behavior.preserve_clipboard,
-        config.wayland.paste_shortcut.clone(),
     )?;
     let indicator = Indicator::new()
         .with_audio_feedback(config.behavior.audio_feedback)
