@@ -161,7 +161,6 @@ input_method = "ydotool"  # Recommended (auto-detected first)
 
 [behavior]
 auto_paste = true
-preserve_clipboard = false
 delete_audio_files = true
 audio_feedback = true
 ```
@@ -182,7 +181,6 @@ input_method = "ydotool"  # Recommended (auto-detected first)
 
 [behavior]
 auto_paste = true
-preserve_clipboard = false
 delete_audio_files = true
 audio_feedback = true
 ```
@@ -202,7 +200,6 @@ input_method = "ydotool"  # Recommended (auto-detected first)
 
 [behavior]
 auto_paste = true
-preserve_clipboard = false
 delete_audio_files = true
 audio_feedback = true
 ```

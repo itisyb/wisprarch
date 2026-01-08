@@ -191,27 +191,38 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
     })
 }
 
-/// Generate a sweeping skeleton loader visualizer.
+/// Generate a braille loading animation that responds to audio.
 ///
-/// Creates a left-to-right sweeping animation based on audio level.
+/// Creates a wave pattern moving left to right, intensity based on voice.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
-    // Skeleton/loader characters that sweep left to right
-    const FRAMES: [&str; 8] = [
-        "▏▏▏▏▏▏▏▏", // 1/8 filled
-        "▎▏▏▏▏▏▏▏", // 2/8 filled
-        "▎▎▏▏▏▏▏▏", // 3/8 filled
-        "▎▎▎▏▏▏▏▏", // 4/8 filled
-        "▎▎▎▎▏▏▏▏", // 5/8 filled
-        "▎▎▎▎▎▏▏▏", // 6/8 filled
-        "▎▎▎▎▎▎▏▏", // 7/8 filled
-        "▎▎▎▎▎▎▎▎", // 8/8 filled (full)
-    ];
+    // Braille patterns for smooth wave (empty to full)
+    const DOTS: [&str; 5] = ["⠀", "⠄", "⠆", "⠇", "⠿"];
 
-    // Use overall audio level to drive the sweep
-    let overall_level = bands.iter().sum::<f32>() / bands.len() as f32;
-    let frame_idx = ((overall_level * 8.0 * 2.0) as usize).min(7); // Boost sensitivity
+    // Calculate overall audio intensity
+    let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
 
-    FRAMES[frame_idx].to_string()
+    // Time-based animation phase
+    let time_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let phase = (time_ms % 600) as f32 / 600.0;
+
+    let mut visualizer = String::new();
+    let num_dots = 10;
+
+    for i in 0..num_dots {
+        // Wave moving left to right
+        let pos = i as f32 / num_dots as f32;
+        let wave = ((pos - phase).abs() * std::f32::consts::PI * 2.0).cos() * 0.5 + 0.5;
+
+        // Intensity affects the wave amplitude
+        let level = (wave * (0.3 + intensity * 1.5)).clamp(0.0, 1.0);
+        let idx = ((level * 5.0) as usize).min(4);
+        visualizer.push_str(DOTS[idx]);
+    }
+
+    visualizer
 }
 
 #[derive(Debug, serde::Deserialize)]

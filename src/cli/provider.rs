@@ -885,9 +885,9 @@ mod tests {
     fn test_get_provider_status() {
         let mut whisper = WhisperConfig::default();
 
-        // Default has wisprarch-api which needs no extra config
+        // Default is "groq" which requires an API key
         let status = get_provider_status_from_config(&whisper).unwrap();
-        assert!(matches!(status, ProviderStatus::Ready { .. }));
+        assert!(matches!(status, ProviderStatus::ConfigError { .. }));
 
         // OpenAI API without key should error
         whisper.provider = Some("openai-api".to_string());

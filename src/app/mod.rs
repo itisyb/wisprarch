@@ -26,10 +26,7 @@ pub async fn run_service() -> Result<()> {
     let whisper = build_transcriber(&config)?;
     let transcription_service = Arc::new(TranscriptionService::new(whisper)?);
 
-    let text_io = TextIoService::new(
-        Some(&config.wayland.input_method),
-        config.behavior.preserve_clipboard,
-    )?;
+    let text_io = TextIoService::new(Some(&config.wayland.input_method))?;
     let indicator = Indicator::new()
         .with_audio_feedback(config.behavior.audio_feedback)
         .with_custom_sounds(

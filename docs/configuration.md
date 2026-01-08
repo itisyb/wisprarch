@@ -8,11 +8,9 @@ The minimal configuration to get started:
 
 ```toml
 [whisper]
-provider = "wisprarch-api"
+provider = "groq"
 language = "en"
-
-# Set your provider-specific credentials:
-# api_key = "sk-your-api-key-here"
+api_key = "your-groq-api-key-here"
 ```
 
 wisprarch will create a default configuration file on first run if none exists.
@@ -34,7 +32,7 @@ wisprarch provider test
 
 **What each command does:**
 - **`provider show`**: Displays your current provider, model, and language settings (API keys are masked for security)
-- **`provider configure`**: Interactive wizard that walks you through selecting a provider (wisprarch API, OpenAI API, OpenAI CLI, whisper.cpp) and setting up credentials/paths
+- **`provider configure`**: Interactive wizard that walks you through selecting a provider (Groq, OpenAI API, OpenAI CLI, whisper.cpp, etc.) and setting up credentials/paths
 - **`provider test`**: Validates your provider configuration without recording audio - useful for troubleshooting
 
 > **Note:** `wisprarch provider configure` must run in a TTY/interactive shell. When the command detects piped/stdin input it logs an info message and exits so you can update the config file manually instead.
@@ -67,7 +65,6 @@ input_method = "wtype"          # Text injection method
 
 [behavior]
 auto_paste = true               # Automatically paste transcribed text
-preserve_clipboard = false      # Keep clipboard content after pasting
 delete_audio_files = true       # Delete temporary audio files after processing
 audio_feedback = true           # Play audio feedback sounds
 ```
@@ -80,7 +77,7 @@ Configures speech-to-text transcription providers and models.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `provider` | string | `"wisprarch-api"` | Transcription provider: `"wisprarch-api"`, `"openai-api"`, `"openai-cli"`, `"whisper-cpp"` |
+| `provider` | string | `"groq"` | Transcription provider: `"groq"`, `"openai-api"`, `"openai-cli"`, `"whisper-cpp"`, `"assembly-ai"`, `"parakeet-v2"`, `"parakeet-v3"` |
 | `api_key` | string | none | API key for API-based providers (required for openai-api) |
 | `model` | string | `"base"` | Model name (provider-specific, see Providers section) |
 | `language` | string | `"en"` | Language code (ISO 639-1 format) |
@@ -92,12 +89,12 @@ Configures speech-to-text transcription providers and models.
 
 wisprarch supports multiple transcription providers:
 
-**wisprarch API** (`provider = "wisprarch-api"`) - **Default & Recommended**
-- **Best for:** Zero-config cloud transcription - just install and go
-- **Requirements:** None (no API key, no local setup, internet connection)
-- **How it works:** Sends audio to wisprarch's hosted Whisper service for transcription
-- **Models:** Large-v3-turbo (automatically managed server-side)
-- **Privacy:** Audio is processed on wisprarch servers, not stored permanently
+**Groq API** (`provider = "groq"`) - **Default & Recommended**
+- **Best for:** Fast, free cloud transcription with generous rate limits
+- **Requirements:** Free API key from [console.groq.com](https://console.groq.com)
+- **How it works:** Sends audio to Groq's hosted Whisper service for transcription
+- **Models:** whisper-large-v3-turbo (fast and accurate)
+- **Privacy:** Audio is processed on Groq servers per their privacy policy
 - **Cost:** Free for personal use
 - **Speed:** Fast, no local GPU/CPU requirements
 - **Why use it:** Easiest setup, consistently fast, no model management
@@ -182,7 +179,6 @@ Controls how wisprarch handles transcribed text and temporary files.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `auto_paste` | bool | `true` | Automatically paste/type transcribed text |
-| `preserve_clipboard` | bool | `false` | Keep existing clipboard content when using clipboard injection |
 | `delete_audio_files` | bool | `true` | Delete temporary audio recordings after processing |
 | `audio_feedback` | bool | `true` | Play audio feedback sounds (start/stop recording) |
 
@@ -207,11 +203,11 @@ wisprarch respects these environment variables:
 ### Quick Start (wisprarch API - Default)
 ```toml
 [whisper]
-provider = "wisprarch-api"  # Zero-config hosted service
+provider = "groq"  # Fast, free cloud transcription
+api_key = "your-groq-api-key"  # Get from console.groq.com
 language = "en"
 
-# That's it! No API keys, no local setup required.
-# The service automatically uses large-v3-turbo model.
+# Groq uses whisper-large-v3-turbo model automatically.
 ```
 
 ### For OpenAI API Users

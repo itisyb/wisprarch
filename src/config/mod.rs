@@ -59,7 +59,6 @@ pub struct WaylandConfig {
 #[serde(default)]
 pub struct BehaviorConfig {
     pub auto_paste: bool,
-    pub preserve_clipboard: bool,
     pub delete_audio_files: bool,
     #[serde(default = "default_audio_feedback")]
     pub audio_feedback: bool,
@@ -116,7 +115,6 @@ impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
             auto_paste: true,
-            preserve_clipboard: false,
             delete_audio_files: true,
             audio_feedback: true,
         }

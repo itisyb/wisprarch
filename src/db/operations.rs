@@ -61,6 +61,41 @@ pub fn count_workflows(conn: &Connection) -> Result<i64> {
     Ok(count)
 }
 
+/// Get a single workflow by ID.
+pub fn get_workflow_by_id(conn: &Connection, id: i64) -> Result<Option<Workflow>> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, workflow_type, text, audio_path, created_at FROM workflows WHERE id = ?1",
+        )
+        .context("Failed to prepare get_workflow_by_id query")?;
+
+    let mut rows = stmt
+        .query([id])
+        .context("Failed to execute get_workflow_by_id query")?;
+
+    if let Some(row) = rows.next().context("Failed to fetch row")? {
+        let id: i64 = row.get(0)?;
+        let workflow_type: String = row.get(1)?;
+        let text: String = row.get(2)?;
+        let audio_path: String = row.get(3)?;
+        let created_at: String = row.get(4)?;
+
+        let data = WorkflowData::VoiceToText(VoiceToTextData { text, audio_path });
+
+        let workflow_type_enum = WorkflowType::parse(&workflow_type)
+            .map_err(|e| anyhow::anyhow!("Invalid workflow type: {}", e))?;
+
+        Ok(Some(Workflow {
+            id: Some(id),
+            workflow_type: workflow_type_enum,
+            data,
+            created_at: Some(created_at),
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
 pub fn prune_old_workflows(conn: &Connection, max_count: i64) -> Result<usize> {
     let count = count_workflows(conn)?;
 

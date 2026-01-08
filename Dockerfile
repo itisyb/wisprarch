@@ -22,13 +22,10 @@ RUN apt-get update && apt-get install -y \
     pulseaudio-utils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/whisperarch /usr/local/bin/
+COPY --from=builder /app/target/release/wisprarch /usr/local/bin/
 
 VOLUME ["/config", "/models"]
 
-ENV WHISPERARCH_CONFIG_DIR=/config
-ENV WHISPERARCH_MODELS_DIR=/models
-
 EXPOSE 3737
 
-CMD ["whisperarch"]
+CMD ["wisprarch"]

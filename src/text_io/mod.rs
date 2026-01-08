@@ -14,12 +14,11 @@ pub struct TextIoService {
 
 struct TextIoInner {
     clipboard: Mutex<Option<Clipboard>>,
-    preserve_previous: bool,
     injection_method: RwLock<InjectionMethod>,
 }
 
 impl TextIoService {
-    pub fn new(preferred_method: Option<&str>, preserve_previous: bool) -> Result<Self> {
+    pub fn new(preferred_method: Option<&str>) -> Result<Self> {
         let clipboard = match Clipboard::new() {
             Ok(cb) => Some(cb),
             Err(err) => {
@@ -35,7 +34,6 @@ impl TextIoService {
         Ok(Self {
             inner: Arc::new(TextIoInner {
                 clipboard: Mutex::new(clipboard),
-                preserve_previous,
                 injection_method: RwLock::new(injection_method),
             }),
         })
@@ -65,17 +63,11 @@ impl TextIoService {
         info!("Copying {} chars to clipboard", text.len());
         debug!("Text to copy: {}", text);
 
-        let preserve_previous = self.inner.preserve_previous;
-        let mut previous: Option<String> = None;
         let mut used_native = false;
 
         {
             let mut clipboard_guard = self.inner.clipboard.lock().await;
             if let Some(clipboard) = clipboard_guard.as_mut() {
-                if preserve_previous {
-                    previous = clipboard.get_text().ok();
-                }
-
                 match clipboard.set_text(text) {
                     Ok(_) => {
                         used_native = true;
@@ -95,10 +87,6 @@ impl TextIoService {
 
         if !used_native {
             self.copy_with_system_backends(text).await?;
-        }
-
-        if let Some(prev) = previous {
-            debug!("Previous clipboard content preserved: {} chars", prev.len());
         }
 
         Ok(())

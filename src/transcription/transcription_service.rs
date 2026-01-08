@@ -43,14 +43,3 @@ impl TranscriptionService {
         Ok(normalized)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    // use super::*;
-
-    #[tokio::test]
-    async fn test_transcription_service_creation() {
-        //TODO: implement this
-        // NOTE:: This would require mocking Transcriber
-    }
-}

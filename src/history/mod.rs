@@ -104,14 +104,8 @@ pub fn get_recent(limit: usize) -> Result<Vec<HistoryEntry>> {
 /// Get a single transcription by ID.
 pub fn get_by_id(id: i64) -> Result<Option<HistoryEntry>> {
     let conn = db::init_db()?;
-    // Use search with a high limit to find by ID
-    // TODO: Add a proper get_by_id to db module
-    let workflows = db::search_workflows(&conn, None, None, None, 10000)?;
-
-    Ok(workflows
-        .into_iter()
-        .find(|w| w.id == Some(id))
-        .map(HistoryEntry::from))
+    let workflow = db::get_workflow_by_id(&conn, id)?;
+    Ok(workflow.map(HistoryEntry::from))
 }
 
 /// Get the text content of a transcription by ID.
