@@ -28,10 +28,21 @@
 		"hyprland",
 		"transcription"
 	],
-	"author": "",
+	"author": "WisprArch Team",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/wisprarch/wisprarch"
-	}
+		"url": "https://github.com/itisyb/wisprarch",
+		"directory": "packages/create-wisprarch"
+	},
+	"homepage": "https://github.com/itisyb/wisprarch#readme",
+	"bugs": {
+		"url": "https://github.com/itisyb/wisprarch/issues"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"files": [
+		"dist"
+	]
 }
