@@ -169,19 +169,25 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
                 "Recording... Press Super+R to stop".to_string(),
             )
         }
-        RecordingPhase::Processing => (
-            "⏳".to_string(),
-            "wisprarch-processing".to_string(),
-            "Processing...".to_string(),
-        ),
-        RecordingPhase::Error => (
-            "❌".to_string(),
-            "wisprarch-error".to_string(),
-            status
-                .last_error
-                .clone()
-                .unwrap_or_else(|| "Error".to_string()),
-        ),
+        RecordingPhase::Processing => {
+            let visualizer = generate_visualizer(&status.frequency_bands);
+            (
+                visualizer,
+                "wisprarch-processing".to_string(),
+                "Processing...".to_string(),
+            )
+        }
+        RecordingPhase::Error => {
+            let visualizer = generate_visualizer(&[0.0; NUM_BANDS]);
+            (
+                visualizer,
+                "wisprarch-error".to_string(),
+                status
+                    .last_error
+                    .clone()
+                    .unwrap_or_else(|| "Error".to_string()),
+            )
+        }
     };
 
     json!({
@@ -191,12 +197,12 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
     })
 }
 
-/// Generate a loading animation that responds to audio.
+/// Generate a braille loading animation that responds to audio.
 ///
 /// Creates a wave pattern moving left to right, responding to voice intensity.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
-    // Dots for wave animation (small to large)
-    const DOTS: [&str; 4] = ["∙", "∘", "○", "●"];
+    // Braille patterns for smooth wave (empty to full)
+    const DOTS: [&str; 5] = ["⠀", "⠄", "⠆", "⠇", "⠿"];
 
     // Calculate overall audio intensity
     let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
@@ -222,10 +228,10 @@ fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
 
         // Combine wave with frequency data and intensity
         let freq_factor = band_data.clamp(0.0, 1.0);
-        let level = (wave * 0.4 + freq_factor * 0.6) * (0.3 + intensity * 2.0);
+        let level = (wave * 0.3 + freq_factor * 0.7) * (0.2 + intensity * 2.0);
         let level = level.clamp(0.0, 1.0);
 
-        let idx = ((level * 4.0) as usize).min(3);
+        let idx = ((level * 5.0) as usize).min(4);
         visualizer.push_str(DOTS[idx]);
     }
 
