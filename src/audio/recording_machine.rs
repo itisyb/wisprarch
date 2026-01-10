@@ -379,6 +379,24 @@ impl RecordingMachine {
 
         let status = self.status.clone();
 
+        // Spawn task to continuously update waybar during processing
+        let status_for_signal = status.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_millis(33)).await; // ~30fps
+
+                let current_status = status_for_signal.get().await;
+                if current_status.phase != RecordingPhase::Processing {
+                    // Stop updating when no longer processing
+                    send_waybar_signal();
+                    break;
+                }
+
+                // Send waybar signal during processing to show loading animation
+                send_waybar_signal();
+            }
+        });
+
         let ctx = ProcessingContext {
             transcription: Arc::clone(&self.transcription),
             indicator: indicator_for_task,

@@ -170,7 +170,7 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
             )
         }
         RecordingPhase::Processing => {
-            let visualizer = generate_visualizer(&status.frequency_bands);
+            let visualizer = generate_loading_animation();
             (
                 visualizer,
                 "wisprarch-processing".to_string(),
@@ -178,7 +178,7 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
             )
         }
         RecordingPhase::Error => {
-            let visualizer = generate_visualizer(&[0.0; NUM_BANDS]);
+            let visualizer = generate_loading_animation();
             (
                 visualizer,
                 "wisprarch-error".to_string(),
@@ -201,18 +201,34 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
 ///
 /// Creates a wave pattern moving left to right, responding to voice intensity.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
+    generate_visualizer_impl(bands, false)
+}
+
+/// Generate a continuous loading animation (for processing state).
+///
+/// Creates a wave pattern moving left to right, like a loading spinner.
+fn generate_loading_animation() -> String {
+    generate_visualizer_impl(&[0.5, 0.7, 0.9, 0.7, 0.5, 0.3, 0.1, 0.0], true)
+}
+
+fn generate_visualizer_impl(bands: &[f32; NUM_BANDS], is_loading: bool) -> String {
     // Braille patterns for smooth wave (empty to full)
     const DOTS: [&str; 5] = ["⠀", "⠄", "⠆", "⠇", "⠿"];
 
-    // Calculate overall audio intensity
-    let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
+    // Calculate overall audio intensity (or use fixed intensity for loading)
+    let intensity = if is_loading {
+        0.6 // Medium intensity for loading animation
+    } else {
+        bands.iter().sum::<f32>() / bands.len() as f32
+    };
 
-    // Time-based animation phase (200ms cycle)
+    // Time-based animation phase (200ms cycle, slower 400ms for loading)
+    let cycle_ms = if is_loading { 400 } else { 200 };
     let time_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let phase = (time_ms % 200) as f32 / 200.0;
+    let phase = (time_ms % cycle_ms) as f32 / cycle_ms as f32;
 
     let mut visualizer = String::new();
     let num_dots = 6;
