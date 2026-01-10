@@ -193,7 +193,7 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
 
 /// Generate a braille loading animation that responds to audio.
 ///
-/// Creates a wave pattern moving left to right, intensity based on voice.
+/// Creates a wave pattern that responds to voice intensity and frequency bands.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
     // Braille patterns for smooth wave (empty to full)
     const DOTS: [&str; 5] = ["⠀", "⠄", "⠆", "⠇", "⠿"];
@@ -201,23 +201,31 @@ fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
     // Calculate overall audio intensity
     let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
 
-    // Time-based animation phase (faster: 200ms cycle)
+    // Time-based animation phase (faster: 150ms cycle)
     let time_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let phase = (time_ms % 200) as f32 / 200.0;
+    let phase = (time_ms % 150) as f32 / 150.0;
 
     let mut visualizer = String::new();
     let num_dots = 6;
 
     for i in 0..num_dots {
-        // Wave moving left to right
+        // Get frequency data for this position (map dots to frequency bands)
+        let band_idx = (i as f32 / num_dots as f32 * bands.len() as f32) as usize;
+        let band_data = bands[band_idx.min(bands.len() - 1)];
+
+        // Wave moving left to right + frequency band influence
         let pos = i as f32 / num_dots as f32;
         let wave = ((pos - phase).abs() * std::f32::consts::PI * 2.0).cos() * 0.5 + 0.5;
 
-        // Intensity affects the wave amplitude
-        let level = (wave * (0.3 + intensity * 1.5)).clamp(0.0, 1.0);
+        // Combine wave with actual frequency data and intensity
+        // band_data gives frequency-specific response, intensity gives overall volume
+        let freq_factor = band_data.clamp(0.0, 1.0);
+        let level = (wave * 0.3 + freq_factor * 0.7) * (0.2 + intensity * 2.0);
+        let level = level.clamp(0.0, 1.0);
+
         let idx = ((level * 5.0) as usize).min(4);
         visualizer.push_str(DOTS[idx]);
     }
