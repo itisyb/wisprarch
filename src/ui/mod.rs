@@ -49,6 +49,8 @@ impl Indicator {
 
     pub async fn show_processing(&self) -> Result<()> {
         info!("Processing started");
+        // Ensure processing animation is visible for at least 500ms
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
         Ok(())
     }
 
