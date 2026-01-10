@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::Mutex;
@@ -21,6 +22,12 @@ pub enum RecordingPhase {
     Recording,
     Processing,
     Error,
+}
+
+fn send_waybar_signal() {
+    let _ = Command::new("pkill")
+        .args(["-RTMIN+", "10", "waybar"])
+        .status();
 }
 
 impl RecordingPhase {
@@ -337,6 +344,7 @@ impl RecordingMachine {
                 if current_status.phase != RecordingPhase::Recording {
                     // Reset visualization when not recording
                     status.set_audio_visualization(0.0, [0.0; NUM_BANDS]).await;
+                    send_waybar_signal();
                     break;
                 }
 
@@ -344,6 +352,7 @@ impl RecordingMachine {
                 let level = analyzer_handle.get_audio_level();
                 let bands = analyzer_handle.get_bands();
                 status.set_audio_visualization(level, bands).await;
+                send_waybar_signal();
             }
         });
 

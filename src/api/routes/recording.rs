@@ -201,15 +201,15 @@ fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
     // Calculate overall audio intensity
     let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
 
-    // Time-based animation phase
+    // Time-based animation phase (faster: 200ms cycle)
     let time_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let phase = (time_ms % 600) as f32 / 600.0;
+    let phase = (time_ms % 200) as f32 / 200.0;
 
     let mut visualizer = String::new();
-    let num_dots = 10;
+    let num_dots = 6;
 
     for i in 0..num_dots {
         // Wave moving left to right
