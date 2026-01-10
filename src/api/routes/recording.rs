@@ -191,42 +191,41 @@ fn generate_waybar_response(status: &RecordingStatus, _config: &WaybarConfig) ->
     })
 }
 
-/// Generate a braille loading animation that responds to audio.
+/// Generate a loading animation that responds to audio.
 ///
-/// Creates a wave pattern that responds to voice intensity and frequency bands.
+/// Creates a wave pattern moving left to right, responding to voice intensity.
 fn generate_visualizer(bands: &[f32; NUM_BANDS]) -> String {
-    // Braille patterns for smooth wave (empty to full)
-    const DOTS: [&str; 5] = ["⠀", "⠄", "⠆", "⠇", "⠿"];
+    // Dots for wave animation (small to large)
+    const DOTS: [&str; 4] = ["∙", "∘", "○", "●"];
 
     // Calculate overall audio intensity
     let intensity: f32 = bands.iter().sum::<f32>() / bands.len() as f32;
 
-    // Time-based animation phase (faster: 150ms cycle)
+    // Time-based animation phase (200ms cycle)
     let time_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let phase = (time_ms % 150) as f32 / 150.0;
+    let phase = (time_ms % 200) as f32 / 200.0;
 
     let mut visualizer = String::new();
     let num_dots = 6;
 
     for i in 0..num_dots {
-        // Get frequency data for this position (map dots to frequency bands)
+        // Get frequency data for this position
         let band_idx = (i as f32 / num_dots as f32 * bands.len() as f32) as usize;
         let band_data = bands[band_idx.min(bands.len() - 1)];
 
-        // Wave moving left to right + frequency band influence
+        // Wave moving left to right
         let pos = i as f32 / num_dots as f32;
         let wave = ((pos - phase).abs() * std::f32::consts::PI * 2.0).cos() * 0.5 + 0.5;
 
-        // Combine wave with actual frequency data and intensity
-        // band_data gives frequency-specific response, intensity gives overall volume
+        // Combine wave with frequency data and intensity
         let freq_factor = band_data.clamp(0.0, 1.0);
-        let level = (wave * 0.3 + freq_factor * 0.7) * (0.2 + intensity * 2.0);
+        let level = (wave * 0.4 + freq_factor * 0.6) * (0.3 + intensity * 2.0);
         let level = level.clamp(0.0, 1.0);
 
-        let idx = ((level * 5.0) as usize).min(4);
+        let idx = ((level * 4.0) as usize).min(3);
         visualizer.push_str(DOTS[idx]);
     }
 
